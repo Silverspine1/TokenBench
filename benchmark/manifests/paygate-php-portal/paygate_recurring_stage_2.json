@@ -1,0 +1,46 @@
+{
+  "task_id": "paygate_recurring_stage_2",
+  "repo_id": "paygate-php-portal",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "medium",
+  "stage": 2,
+  "stage_group_id": "paygate_recurring_payments",
+  "previous_stage_task_id": "paygate_recurring_stage_1",
+  "input_source": "previous_candidate",
+  "prompt": "Recurring schedules now need to survive failures. Support pausing a schedule after repeated failed payment attempts, resuming it manually, and retrying a failed attempt without ever duplicating a charge. Add pauseSchedule and resumeSchedule behavior; track failed attempts; and make retry create a new attempt only when it is appropriate (idempotent). A schedule that fails three times in a row pauses itself automatically. Keep the existing Stage 1 schedule behavior unchanged.\n\nExtend the existing Container property `recurringService` (from the previous change) with these exact public methods, all keyed by id: `pauseSchedule($scheduleId)` (a paused schedule yields no due attempts from generateDueAttempts), `resumeSchedule($scheduleId)` (restores due generation), `markAttemptFailed($attemptId)` (records the failure and increments the schedule's failure count), and `retryAttempt($attemptId)` (creates at most one new attempt for a failed attempt; calling it again for the same attempt is idempotent and creates no duplicate). The RecurringSchedule object must expose a public `failureCount` property and an `isPaused()` method, and must auto-pause once its failure count reaches three. The existing Stage 1 entry points (`createSchedule(...)`, `generateDueAttempts($today)`, `recurringSchedules->saveSchedule($schedule)`) and their object shapes remain unchanged.",
+  "issue_title": "Recurring payments need pause, resume, and failed-payment recovery.",
+  "issue_body": "Recurring schedules now need to survive failures. Support pausing a schedule after repeated failed payment attempts, resuming it manually, and retrying a failed attempt without ever duplicating a charge. Add pauseSchedule and resumeSchedule behavior; track failed attempts; and make retry create a new attempt only when it is appropriate (idempotent). A schedule that fails three times in a row pauses itself automatically. Keep the existing Stage 1 schedule behavior unchanged.\n\nExtend the existing Container property `recurringService` (from the previous change) with these exact public methods, all keyed by id: `pauseSchedule($scheduleId)` (a paused schedule yields no due attempts from generateDueAttempts), `resumeSchedule($scheduleId)` (restores due generation), `markAttemptFailed($attemptId)` (records the failure and increments the schedule's failure count), and `retryAttempt($attemptId)` (creates at most one new attempt for a failed attempt; calling it again for the same attempt is idempotent and creates no duplicate). The RecurringSchedule object must expose a public `failureCount` property and an `isPaused()` method, and must auto-pause once its failure count reaches three. The existing Stage 1 entry points (`createSchedule(...)`, `generateDueAttempts($today)`, `recurringSchedules->saveSchedule($schedule)`) and their object shapes remain unchanged.",
+  "expected_behavior": [
+    "A paused schedule produces no due attempts until it is resumed.",
+    "Resuming a paused schedule makes it produce due attempts again.",
+    "A failed attempt is tracked and increments the schedule's failure count.",
+    "Retrying a failed attempt is idempotent: it creates at most one new attempt no matter how many times retry is called, so a charge is never duplicated.",
+    "Three failed attempts in a row pause the schedule automatically.",
+    "The Stage 1 schedule behavior (due generation and nextRunAt advancement) is unchanged."
+  ],
+  "broken_snapshot": "benchmark/repos/paygate-php-portal/broken/paygate_recurring_stage_2",
+  "gold_snapshot": "benchmark/repos/paygate-php-portal/staged/paygate_recurring_stage_2_gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py",
+    "python tests_visible/run_output_stress.py"
+  ],
+  "hidden_commands": ["python -m pytest benchmark/tests/paygate-php-portal/paygate_recurring_stage_2/hidden/test_hidden.py -q"],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": ["app/**", "public/**"],
+  "ignored_paths": ["docs/**", "fixtures/**"],
+  "forbidden_paths": ["benchmark/**", "tests/**", ".tokenbench/**"],
+  "output_stress": {
+    "enabled": true,
+    "expected_visible_output_bytes_min": 50000,
+    "expected_visible_output_bytes_max": 300000
+  },
+  "expected_failure_summary": "The Stage 1 baseline has no failure-recovery behavior: RecurringSchedule has no paused state or failure tracking, and RecurringPaymentService exposes no pauseSchedule, resumeSchedule, failed-attempt tracking, or idempotent retry, so failed recurring payments cannot be paused, resumed, or safely retried.",
+  "skills_tested": ["feature extension", "state-machine extension", "idempotent retry"],
+  "root_cause_files": [],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 6,
+  "task_author_notes": "Stage 2 of the paygate_recurring_payments group. Runs on the agent's Stage 1 candidate. Reference extends RecurringSchedule with a PAUSED status, a failureCount and pause()/resume()/registerFailure() (auto-pause at MAX_FAILURES=3); extends RecurringAttempt with a retriedFromId link and isFailed(); adds repository lookups (findAttempt, retryOf); and adds RecurringPaymentService::pauseSchedule, resumeSchedule, markAttemptFailed (idempotent failure recording), and retryAttempt (creates a new attempt only when the original is failed and not already retried). Extension friction is high if Stage 1 modelled schedules as a one-off generator rather than a status + nextRunAt state machine. Stage 2 is the designated long-output task: tests_visible/run_output_stress.py drives ~70 days of recurring cycles across 24 schedules and prints one fixed-width line per generated cycle (~75 KB, within 50000-300000)."
+}

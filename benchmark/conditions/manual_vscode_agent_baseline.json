@@ -1,0 +1,9 @@
+{
+  "condition_id": "manual_vscode_agent_baseline",
+  "agent": "manual-ide",
+  "model": "user-entered",
+  "tools": ["external-ide", "vscode-agent"],
+  "description": "Manual IDE benchmark run through the TokenBench UI (VS Code agent).",
+  "cost_basis": "manual_provider_entry",
+  "official": false
+}

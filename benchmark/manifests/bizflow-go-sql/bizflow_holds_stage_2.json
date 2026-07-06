@@ -1,0 +1,56 @@
+{
+  "task_id": "bizflow_holds_stage_2",
+  "repo_id": "bizflow-go-sql",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "medium",
+  "stage": 2,
+  "stage_group_id": "bizflow_holds",
+  "previous_stage_task_id": "bizflow_holds_stage_1",
+  "input_source": "previous_candidate",
+  "prompt": "Now that staff can set stock aside for a customer, two gaps are causing problems. First, reservations are never cleaned up on their own: a customer walks away and their units stay set aside forever, slowly starving everyone else of stock. A reservation should be able to carry a cut-off date, and there should be a way to sweep up the ones whose time has passed and return their units to availability, while leaving newer reservations and ones with no cut-off alone. Second, a customer often takes only some of what was set aside. There should be a way to complete a reservation in part: the taken units actually leave the warehouse, the rest stay set aside for the customer, and once everything set aside has been taken the reservation is finished. Behavior for reservations that are not expired and not partially taken must be exactly as it is now.\n\nExtend the internal/service HoldService with: PlaceUntil(tenantID, sku string, qty int, createdOn, expiresOn string) (Hold, error) - like Place but recording an expiry date; ExpireBefore(date string) int - release every hold whose expiry is on or before date and return how many were removed, leaving unexpired holds and holds with no expiry untouched; List(tenantID string) []Hold - the tenant's current live holds; and Fulfill(holdID string, qty int) error - take qty units from the hold so they leave on-hand stock, keep the remainder reserved, remove the hold once everything reserved has been taken, and treat an over-large qty as fulfilling the whole remaining hold.",
+  "issue_title": "Reservations never expire and can't be taken in part",
+  "issue_body": "Now that staff can set stock aside for a customer, two gaps are causing problems. First, reservations are never cleaned up on their own: a customer walks away and their units stay set aside forever, slowly starving everyone else of stock. A reservation should be able to carry a cut-off date, and there should be a way to sweep up the ones whose time has passed and return their units to availability, while leaving newer reservations and ones with no cut-off alone. Second, a customer often takes only some of what was set aside. There should be a way to complete a reservation in part: the taken units actually leave the warehouse, the rest stay set aside for the customer, and once everything set aside has been taken the reservation is finished. Behavior for reservations that are not expired and not partially taken must be exactly as it is now.\n\nExtend the internal/service HoldService with: PlaceUntil(tenantID, sku string, qty int, createdOn, expiresOn string) (Hold, error) - like Place but recording an expiry date; ExpireBefore(date string) int - release every hold whose expiry is on or before date and return how many were removed, leaving unexpired holds and holds with no expiry untouched; List(tenantID string) []Hold - the tenant's current live holds; and Fulfill(holdID string, qty int) error - take qty units from the hold so they leave on-hand stock, keep the remainder reserved, remove the hold once everything reserved has been taken, and treat an over-large qty as fulfilling the whole remaining hold.",
+  "expected_behavior": [
+    "A reservation can carry a cut-off date, and sweeping past a given moment returns the units of every reservation whose cut-off has passed, leaving newer ones and ones with no cut-off untouched.",
+    "Taking part of a reservation removes exactly those units from the warehouse and from the reservation, leaving the remainder still set aside.",
+    "Once all the set-aside units have been taken, the reservation is finished and no longer ties up stock.",
+    "Reservations that have not expired and have not been partially taken behave exactly as before.",
+    "Extend service.HoldService with PlaceUntil(...), ExpireBefore(date) int, List(tenantID) []Hold, and Fulfill(holdID, qty) error."
+  ],
+  "broken_snapshot": "benchmark/repos/bizflow-go-sql/broken/bizflow_holds_stage_2",
+  "gold_snapshot": "benchmark/repos/bizflow-go-sql/staged/bizflow_holds_stage_2_gold",
+  "visible_commands": [
+    "go test ./tests_visible/..."
+  ],
+  "hidden_commands": [
+    "python benchmark/tests/bizflow-go-sql/bizflow_holds_stage_2/hidden/run_hidden.py"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "internal/**",
+    "migrations/**",
+    "cmd/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The stage-1 holds feature has no expiry and no partial completion: a reservation lives forever and can only be released whole, so abandoned reservations starve stock and a customer taking part of a reservation is not supported.",
+  "skills_tested": [
+    "feature extension",
+    "reusing an existing abstraction",
+    "transactional state change"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 3,
+  "expected_changed_files_max": 7,
+  "task_author_notes": "Stage 2 of the bizflow_holds group. Runs on the agent's Stage 1 candidate. Reference adds an expires_at column to the holds table/migration and an ExpiresAt field to model.Hold; PlaceUntil records the expiry (Place delegates with empty expiry); ExpireBefore(now) releases holds whose expires_at is non-empty and <= now (inclusive boundary); Fulfill(holdID, qty) does partial fulfillment by reusing the Stage 1 consume(holdID, units, fulfil=true) helper, which draws qty down from on_hand and frees the reservation, deleting the hold when fully consumed or shrinking its quantity otherwise. Extension friction is low when Stage 1 modelled a hold record with quantity and a shared consume path; high when Stage 1 hardcoded whole-hold release. The hidden check.go imports bizflow/internal/service and calls PlaceUntil/ExpireBefore/Fulfill: on broken (= Stage 1 gold) those methods are undefined so it fails to compile; on gold it compiles and the behavioural assertions pass. The visible test imports only the stable bizdb/repository/service seam, so it runs on both snapshots."
+}

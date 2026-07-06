@@ -1,0 +1,47 @@
+{
+  "task_id": "logforge_rolling_window_001",
+  "repo_id": "logforge-cpp",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "The moving-average feature gives wrong answers. Users plotting a moving average notice that only the very first average looks right; from the second one on, the numbers drift away from what a moving average over their data should be. When they run the same moving average directly over a column of one of their data files, it is even more off: the very first reading in the column seems to be missing from the result, so the whole curve is shifted and one point short.\n\nThe moving average is expected to behave like a moving average:\n- Each reported average is the plain mean of the consecutive run of readings currently under the window, and there is one average for every position the window can fully occupy.\n- When the average is taken from a data column, it is computed over that column's readings in order, with none of the genuine readings dropped from either end.\n\nPreserve existing public types/fields and unrelated behavior.",
+  "issue_title": "Moving averages come out wrong",
+  "issue_body": "The moving-average feature gives wrong answers. Users plotting a moving average notice that only the very first average looks right; from the second one on, the numbers drift away from what a moving average over their data should be. When they run the same moving average directly over a column of one of their data files, it is even more off: the very first reading in the column seems to be missing from the result, so the whole curve is shifted and one point short.\n\nThe moving average is expected to behave like a moving average:\n- Each reported average is the plain mean of the consecutive run of readings currently under the window, and there is one average for every position the window can fully occupy.\n- When the average is taken from a data column, it is computed over that column's readings in order, with none of the genuine readings dropped from either end.\n\nPreserve existing public types/fields and unrelated behavior.",
+  "broken_snapshot": "benchmark/repos/logforge-cpp/broken/logforge_rolling_window_001",
+  "gold_snapshot": "benchmark/repos/logforge-cpp/gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py"
+  ],
+  "hidden_commands": [
+    "python benchmark/tests/logforge-cpp/logforge_rolling_window_001/hidden/run_hidden.py"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "include/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The incremental moving-average update subtracts values[i - window + 1] instead of values[i - window], so the element leaving the window is wrong and every mean after the first is computed over a shifted span. Independently, the column-fed front end erases the first numeric reading before averaging, dropping one point and shifting the result.",
+  "skills_tested": [
+    "sliding-window arithmetic",
+    "incremental aggregation",
+    "column wiring"
+  ],
+  "root_cause_files": [
+    "src/rolling.cpp",
+    "src/window.cpp"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "Two coupled defects. In rollingMean the slide step must subtract values[i - window], the element that actually leaves the window; the broken code subtracts values[i - window + 1], which keeps the length and the first mean right but corrupts every later mean. In windowMeans the erase of the first numeric value must be removed so the moving average sees the whole column. Fixing only rollingMean still drops the first column reading; fixing only windowMeans still leaves the later in-memory means wrong."
+}

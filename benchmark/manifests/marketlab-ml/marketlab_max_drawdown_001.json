@@ -1,0 +1,46 @@
+{
+  "task_id": "marketlab_max_drawdown_001",
+  "repo_id": "marketlab-ml",
+  "mode": "atomic",
+  "category": "implementation",
+  "difficulty": "medium",
+  "prompt": "Add a max_drawdown field to the backtest metrics output. It must be computed from the equity curve as the largest peak-to-trough percentage decline. Preserve existing metric names and output shape.",
+  "broken_snapshot": "benchmark/repos/marketlab-ml/broken/marketlab_max_drawdown_001",
+  "gold_snapshot": "benchmark/repos/marketlab-ml/gold",
+  "visible_commands": [
+    "pytest -q tests_visible"
+  ],
+  "hidden_commands": [
+    "pytest -q benchmark/tests/marketlab-ml/marketlab_max_drawdown_001/hidden"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "marketlab/**",
+    "configs/**",
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/logs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "compute_metrics omits max_drawdown; the field must be added without changing existing metric names.",
+  "skills_tested": [
+    "metric implementation",
+    "equity curve analysis",
+    "numerical correctness"
+  ],
+  "root_cause_files": [
+    "marketlab/backtest.py"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 1,
+  "task_author_notes": "max_drawdown = max over t of (running_peak - equity_t) / running_peak, returned as a non-negative fraction. Monotonic-up curves yield 0.0."
+}

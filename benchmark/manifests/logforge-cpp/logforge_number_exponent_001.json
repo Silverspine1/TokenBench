@@ -1,0 +1,47 @@
+{
+  "task_id": "logforge_number_exponent_001",
+  "repo_id": "logforge-cpp",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "Users say the numeric summary of their data is missing readings and reporting totals that are too low. Whole categories of perfectly ordinary numbers are being thrown away as if their cells were blank: numbers written in scientific notation, numbers with a leading plus sign, and readings that are negative or zero all silently disappear from the count and the totals. Plain positive whole numbers and simple decimals are summarised fine, so users only notice the gap when their data contains the other forms.\n\nFor instance a column whose readings include a value like 1.5e3 ends up with a lower count than the number of readings actually present.\n\nThe summary is expected to be faithful to the data:\n- Every cell that holds an ordinary number is counted as the value it denotes, regardless of how that number happens to be written or its sign, and zero counts as a reading like any other.\n- A cell that does not hold an ordinary number contributes nothing.\n\nPreserve existing public types/fields and unrelated behavior.",
+  "issue_title": "Readings go missing from the numeric summary",
+  "issue_body": "Users say the numeric summary of their data is missing readings and reporting totals that are too low. Whole categories of perfectly ordinary numbers are being thrown away as if their cells were blank: numbers written in scientific notation, numbers with a leading plus sign, and readings that are negative or zero all silently disappear from the count and the totals. Plain positive whole numbers and simple decimals are summarised fine, so users only notice the gap when their data contains the other forms.\n\nFor instance a column whose readings include a value like 1.5e3 ends up with a lower count than the number of readings actually present.\n\nThe summary is expected to be faithful to the data:\n- Every cell that holds an ordinary number is counted as the value it denotes, regardless of how that number happens to be written or its sign, and zero counts as a reading like any other.\n- A cell that does not hold an ordinary number contributes nothing.\n\nPreserve existing public types/fields and unrelated behavior.",
+  "broken_snapshot": "benchmark/repos/logforge-cpp/broken/logforge_number_exponent_001",
+  "gold_snapshot": "benchmark/repos/logforge-cpp/gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py"
+  ],
+  "hidden_commands": [
+    "python benchmark/tests/logforge-cpp/logforge_number_exponent_001/hidden/run_hidden.py"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "include/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The number parser screens the trimmed text against a digit/dot/minus character set before converting, so any cell containing 'e', 'E' or a leading '+' is rejected as non-numeric and never reaches strtod. Independently, the column extractor only keeps readings strictly greater than zero, so negative and zero values are discarded even once they parse.",
+  "skills_tested": [
+    "numeric parsing",
+    "floating-point grammar",
+    "data filtering"
+  ],
+  "root_cause_files": [
+    "src/parse_number.cpp",
+    "src/column.cpp"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "Two coupled defects. The parser's looksNumeric pre-screen must be removed (or widened to the full grammar) so strtod sees scientific notation and a leading plus; relying on strtod plus the whole-string-consumed check is already correct. Separately the column extractor must stop filtering on a strictly-positive condition and keep every value that parses, including negatives and zero. Fixing only the parser still drops negatives and zero; fixing only the extractor still drops scientific notation and signed numbers."
+}

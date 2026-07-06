@@ -1,0 +1,58 @@
+{
+  "task_id": "vaultdesk_index_freshness_001",
+  "repo_id": "vaultdesk-tauri",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "The search index should stay consistent after notes are created, updated, removed, renamed, and rescanned. Today search can still return notes that were removed or miss the latest content of edited notes.",
+  "issue_title": "Search sometimes shows removed notes or misses recent edits",
+  "issue_body": "The search index should stay consistent after notes are created, updated, removed, renamed, and rescanned. Today search can still return notes that were removed or miss the latest content of edited notes.",
+  "expected_behavior": [
+    "Removed notes no longer appear in search.",
+    "Edited notes reflect their latest content.",
+    "Renamed notes use their new path.",
+    "A full rescan rebuilds the index."
+  ],
+  "broken_snapshot": "benchmark/repos/vaultdesk-tauri/broken/vaultdesk_index_freshness_001",
+  "gold_snapshot": "benchmark/repos/vaultdesk-tauri/gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py"
+  ],
+  "hidden_commands": [
+    "python -m pytest benchmark/tests/vaultdesk-tauri/vaultdesk_index_freshness_001/hidden/test_hidden.py -q"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "src-tauri/src/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**",
+    "src-tauri/tests/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "output_stress": {
+    "enabled": true,
+    "expected_visible_output_bytes_min": 50000,
+    "expected_visible_output_bytes_max": 300000
+  },
+  "expected_failure_summary": "Three coupled defects in SearchIndex: update stores new content but never recomputes the derived tokens, so queries still match the stale content and miss the new content; remove is a no-op, so a removed document keeps appearing in results; and rename is a no-op, so a renamed document keeps reporting its old path.",
+  "skills_tested": [
+    "derived-state freshness",
+    "index invalidation",
+    "remove correctness"
+  ],
+  "root_cause_files": [
+    "src-tauri/src/index/search_index.rs"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 2,
+  "task_author_notes": "update must recompute doc.tokens from the new content alongside setting doc.content; remove must actually drop the document from the map; rename must set doc.path to the new path. rescan is already correct."
+}

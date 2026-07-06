@@ -1,0 +1,30 @@
+diff --git a/Runtime/BuiltIns/MathBuiltIns.cs b/Runtime/BuiltIns/MathBuiltIns.cs
+index 0e04703..c7630ea 100644
+--- a/Runtime/BuiltIns/MathBuiltIns.cs
++++ b/Runtime/BuiltIns/MathBuiltIns.cs
+@@ -109,7 +109,7 @@ public static class MathBuiltIns
+     {
+         int unit = 0;
+         double threshold = 1024.0;
+-        while (unit < _byteUnits.Length - 1 && n > threshold)
++        while (unit < _byteUnits.Length - 1 && n >= threshold)
+         {
+             unit++;
+             threshold *= 1024.0;
+@@ -147,7 +147,15 @@ public static class MathBuiltIns
+         }
+ 
+         double rounded = Math.Round(scaled, 1, MidpointRounding.AwayFromZero);
+-        string text = rounded.ToString("0.0", CultureInfo.InvariantCulture);
++        string text;
++        if (rounded == Math.Floor(rounded))
++        {
++            text = ((long)rounded).ToString(CultureInfo.InvariantCulture);
++        }
++        else
++        {
++            text = rounded.ToString("0.0", CultureInfo.InvariantCulture);
++        }
+         return text + " " + label;
+     }
+ }

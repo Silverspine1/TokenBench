@@ -1,0 +1,52 @@
+{
+  "task_id": "bizflow_stock_oversell_001",
+  "repo_id": "bizflow-go-sql",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "Inventory is being oversold. The business keeps committing units of a product that it does not actually have: reservations for a product go on succeeding even after everything in stock has already been promised, the reported availability does not fall as units get committed, and an order that asks for the same product across more than one of its lines can slip through even when those lines added together come to more than is left. Operators end up promising stock that cannot be delivered.\n\nReservations have to honour what is genuinely left to give out.\n\nInvariants:\n- A product can never be committed beyond what it actually has; everything already promised counts against what remains.\n- The remaining availability the system reports always matches what is truly still free to reserve, and a rejected request changes nothing.\n- Demand for the same product is weighed as a whole, so parts of one order cannot each look acceptable on their own yet together exceed what is left.\n\nPreserve existing public fields and unrelated behavior.",
+  "issue_title": "Inventory can be committed past what is actually in stock",
+  "issue_body": "Inventory is being oversold. The business keeps committing units of a product that it does not actually have: reservations for a product go on succeeding even after everything in stock has already been promised, the reported availability does not fall as units get committed, and an order that asks for the same product across more than one of its lines can slip through even when those lines added together come to more than is left. Operators end up promising stock that cannot be delivered.\n\nReservations have to honour what is genuinely left to give out.\n\nInvariants:\n- A product can never be committed beyond what it actually has; everything already promised counts against what remains.\n- The remaining availability the system reports always matches what is truly still free to reserve, and a rejected request changes nothing.\n- Demand for the same product is weighed as a whole, so parts of one order cannot each look acceptable on their own yet together exceed what is left.\n\nPreserve existing public fields and unrelated behavior.",
+  "broken_snapshot": "benchmark/repos/bizflow-go-sql/broken/bizflow_stock_oversell_001",
+  "gold_snapshot": "benchmark/repos/bizflow-go-sql/gold",
+  "visible_commands": [
+    "go test ./tests_visible/..."
+  ],
+  "hidden_commands": [
+    "python benchmark/tests/bizflow-go-sql/bizflow_stock_oversell_001/hidden/run_hidden.py"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "internal/**",
+    "migrations/**",
+    "cmd/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Available stock is computed as the full on-hand count, ignoring units already reserved, and the reservation checks compare the request against on hand rather than what is still available, so reservations never account for prior ones and stock can be oversold.",
+  "skills_tested": [
+    "invariant preservation",
+    "inventory accounting",
+    "cross-file tracing"
+  ],
+  "root_cause_files": [
+    "internal/model/types.go",
+    "internal/service/inventory.go"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "output_stress": {
+    "enabled": true,
+    "expected_visible_output_bytes_min": 50000,
+    "expected_visible_output_bytes_max": 300000
+  },
+  "task_author_notes": "Both files must change. Available must subtract reserved from on hand, and the reservation checks must compare against available rather than on hand. Fixing only the availability calculation still oversells because the checks read on hand directly; fixing only the checks still oversells because available reports the full on-hand count. Second facet (documented in docs/inventory_rules.md): the combined-demand check must sum same-SKU lines and weigh the total against what is still available, not the raw on-hand count. A surface fix that repairs Available and the single-line reserve check but leaves the combined check comparing against on hand still admits an order whose same-SKU lines together exceed the remaining availability (e.g. 4 already reserved of 10 on hand, lines of 3 and 4)."
+}

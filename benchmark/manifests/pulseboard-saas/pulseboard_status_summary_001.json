@@ -1,0 +1,46 @@
+{
+  "task_id": "pulseboard_status_summary_001",
+  "repo_id": "pulseboard-saas",
+  "mode": "atomic",
+  "category": "implementation",
+  "difficulty": "hard",
+  "prompt": "The invoice status summary overstates how much customers still owe. For accounts that have made payments or received adjustments, the outstanding figure doesn't match what the underlying invoices actually come to, and in some cases it moves in a direction that shouldn't be possible. Each status's totals should reconcile with the invoices grouped under it.\n\nExpected:\n- For every status, the summary's amounts agree with the invoices in that status.\n- The amount still owed is never an impossible value.\n- Keep the existing status labels and summary field names exactly as they are.\n- Don't modify the caller's invoice data.",
+  "issue_title": "Outstanding totals in the invoice summary are too high",
+  "issue_body": "The invoice status summary overstates how much customers still owe. For accounts that have made payments or received adjustments, the outstanding figure doesn't match what the underlying invoices actually come to, and in some cases it moves in a direction that shouldn't be possible. Each status's totals should reconcile with the invoices grouped under it.\n\nExpected:\n- For every status, the summary's amounts agree with the invoices in that status.\n- The amount still owed is never an impossible value.\n- Keep the existing status labels and summary field names exactly as they are.\n- Don't modify the caller's invoice data.",
+  "broken_snapshot": "benchmark/repos/pulseboard-saas/broken/pulseboard_status_summary_001",
+  "gold_snapshot": "benchmark/repos/pulseboard-saas/gold",
+  "visible_commands": [
+    "node tests_visible/run_visible_tests.js"
+  ],
+  "hidden_commands": [
+    "node --test --test-reporter=tap benchmark/tests/pulseboard-saas/pulseboard_status_summary_001/hidden/test_hidden_status_summary.js"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Per-invoice totals drop credits and the non-negative clamp, and the summary accumulates gross as outstanding, so partial payments/credits and overpayment are wrong.",
+  "skills_tested": [
+    "domain invariants",
+    "money arithmetic in cents",
+    "edge-case clamping"
+  ],
+  "root_cause_files": [
+    "src/invoices/totals.js",
+    "src/invoices/summary.js"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "computeTotals outstanding = max(0, gross - paid - credited). summary must accumulate t.outstanding, not gross. Both must be fixed."
+}

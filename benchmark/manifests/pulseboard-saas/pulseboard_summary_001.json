@@ -1,0 +1,43 @@
+{
+  "task_id": "pulseboard_summary_001",
+  "repo_id": "pulseboard-saas",
+  "mode": "atomic",
+  "category": "implementation",
+  "difficulty": "medium",
+  "prompt": "Add a summary function that returns invoice counts and total amount by status for the currently filtered invoice set. Preserve the existing invoice schema and do not mutate input arrays.",
+  "broken_snapshot": "benchmark/repos/pulseboard-saas/broken/pulseboard_summary_001",
+  "gold_snapshot": "benchmark/repos/pulseboard-saas/gold",
+  "visible_commands": [
+    "node tests_visible/run_visible_tests.js"
+  ],
+  "hidden_commands": [
+    "node benchmark/tests/pulseboard-saas/pulseboard_summary_001/hidden/test_hidden_summary.js"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "summarizeByStatus is not implemented (src/summary.js exports nothing).",
+  "skills_tested": [
+    "aggregation",
+    "immutability",
+    "API design"
+  ],
+  "root_cause_files": [
+    "src/summary.js"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 1,
+  "task_author_notes": "Implement summarizeByStatus returning { status: { count, total } } without mutating the input array."
+}

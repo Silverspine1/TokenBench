@@ -1,0 +1,9 @@
+{
+  "condition_id": "claude_code_caveman",
+  "agent": "claude-code",
+  "model": "opus-4.8",
+  "tools": ["caveman"],
+  "description": "Claude Code with caveman output-compression enabled.",
+  "cost_basis": "provider_reported",
+  "official": false
+}

@@ -1,0 +1,23 @@
+{
+  "build": {
+    "distDir": "../dist",
+    "devPath": "http://localhost:1420"
+  },
+  "package": {
+    "productName": "VaultDesk",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "bundle": {
+      "active": false,
+      "identifier": "ai.tokenbench.vaultdesk"
+    },
+    "windows": [
+      {
+        "title": "VaultDesk",
+        "width": 1024,
+        "height": 720
+      }
+    ]
+  }
+}

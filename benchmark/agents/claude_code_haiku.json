@@ -1,0 +1,14 @@
+{
+  "agent_id": "claude_code_haiku",
+  "display_name": "Claude Code Haiku",
+  "kind": "cli_agent",
+  "provider": "claude",
+  "model": "claude-haiku-4-5-20251001",
+  "model_resolution": "configured",
+  "command_template": ["claude", "--print", "--dangerously-skip-permissions", "--disallowedTools", "WebSearch", "WebFetch", "--model", "claude-haiku-4-5-20251001"],
+  "supports_stdin_prompt": true,
+  "supports_workspace_cwd": true,
+  "final_submission_mode": "process_exit",
+  "default_timeout_seconds": 900,
+  "env": {}
+}

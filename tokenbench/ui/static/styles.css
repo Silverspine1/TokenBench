@@ -1,0 +1,31 @@
+:root { color-scheme: light dark; --fg: #1b1b1b; --muted: #6b7280; --line: #d1d5db;
+  --accent: #2563eb; --bg: #ffffff; --panel: #f7f7f8; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.5 system-ui, sans-serif; color: var(--fg); background: var(--bg); }
+header { display: flex; gap: 1rem; align-items: center; padding: .75rem 1.25rem;
+  border-bottom: 1px solid var(--line); }
+.brand { font-weight: 700; text-decoration: none; color: var(--fg); }
+.navlink { color: var(--accent); text-decoration: none; }
+main { padding: 1.25rem; max-width: 1100px; margin: 0 auto; }
+h1 { font-size: 1.4rem; } h2 { font-size: 1.1rem; margin-top: 1.25rem; }
+.muted { color: var(--muted); }
+table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); }
+code { background: var(--panel); padding: .05rem .3rem; border-radius: 4px; }
+.btn { display: inline-block; padding: .35rem .7rem; border: 1px solid var(--line);
+  border-radius: 6px; background: var(--panel); color: var(--fg); text-decoration: none;
+  cursor: pointer; font-size: .9rem; }
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  padding: 1rem; margin-top: 1rem; }
+.panel label { display: inline-flex; flex-direction: column; gap: .2rem; margin: .3rem .6rem .3rem 0; }
+.panel input, .panel select { padding: .3rem; border: 1px solid var(--line); border-radius: 6px; }
+.prompt, pre { background: var(--bg); border: 1px solid var(--line); border-radius: 6px;
+  padding: .75rem; overflow: auto; white-space: pre-wrap; }
+.actions { margin-top: 1rem; }
+.tabs { margin-top: .75rem; }
+#grid input { padding: .2rem .3rem; border: 1px solid var(--line); border-radius: 4px; font-size: .85rem; }
+#grid th, #grid td { white-space: nowrap; }
+#legend { margin-top: .5rem; }
+.legend-chip { display: inline-flex; align-items: center; margin-right: 1rem; font-size: .9rem; }
+.legend-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: .25rem; }

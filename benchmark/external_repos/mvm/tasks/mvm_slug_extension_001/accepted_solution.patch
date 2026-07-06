@@ -1,0 +1,52 @@
+diff --git a/stdlib/core/tbx.go b/stdlib/core/tbx.go
+index db3bf6f..e15c566 100644
+--- a/stdlib/core/tbx.go
++++ b/stdlib/core/tbx.go
+@@ -32,12 +32,13 @@ func tbxNormalize(s string) string {
+ 		}
+ 		if (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') {
+ 			b.WriteByte(c)
++			prevDash = false
+ 		} else {
+ 			if !prevDash {
+ 				b.WriteByte('-')
++				prevDash = true
+ 			}
+ 		}
+-		prevDash = false
+ 	}
+ 	return b.String()
+ }
+@@ -56,9 +57,11 @@ func tbxCollapse(s string) string {
+ 			count = 1
+ 			last = c
+ 		}
+-		if c == '-' {
+-			b.WriteByte(c)
+-		} else if count <= 2 {
++		if c >= 'a' && c <= 'z' {
++			if count <= 2 {
++				b.WriteByte(c)
++			}
++		} else {
+ 			b.WriteByte(c)
+ 		}
+ 	}
+@@ -73,7 +76,7 @@ func tbxTruncate(s string) string {
+ 		return s
+ 	}
+ 	cut := -1
+-	for i := 0; i < 20 && i < len(s); i++ {
++	for i := 0; i <= 20 && i < len(s); i++ {
+ 		if s[i] == '-' {
+ 			cut = i
+ 		}
+@@ -83,7 +86,7 @@ func tbxTruncate(s string) string {
+ 	} else {
+ 		s = s[:cut]
+ 	}
+-	return s
++	return strings.TrimRight(s, "-")
+ }
+ 
+ func init() {

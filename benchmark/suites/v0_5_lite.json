@@ -1,0 +1,18 @@
+{
+  "suite_id": "v0_5_lite",
+  "description": "Smoke suite for harness validation (alias of v0_5_smoke). Not intended for model discrimination - use v0_5_hard. Retained for compatibility.",
+  "tasks": [
+    "benchmark/manifests/marketlab-ml/marketlab_fee_slippage_001.json",
+    "benchmark/manifests/marketlab-ml/marketlab_lookahead_feature_001.json",
+    "benchmark/manifests/marketlab-ml/marketlab_split_leakage_001.json",
+    "benchmark/manifests/marketlab-ml/marketlab_max_drawdown_001.json",
+    "benchmark/manifests/marketlab-ml/marketlab_label_alignment_001.json",
+    "benchmark/manifests/pulseboard-saas/pulseboard_invoice_export_001.json",
+    "benchmark/manifests/pulseboard-saas/pulseboard_pagination_001.json",
+    "benchmark/manifests/pulseboard-saas/pulseboard_datefilter_001.json",
+    "benchmark/manifests/pulseboard-saas/pulseboard_summary_001.json",
+    "benchmark/manifests/pulseboard-saas/pulseboard_contract_001.json"
+  ],
+  "required_trials": 2,
+  "official": false
+}

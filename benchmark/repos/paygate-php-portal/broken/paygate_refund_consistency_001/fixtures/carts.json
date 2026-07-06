@@ -1,0 +1,29 @@
+[
+    {
+        "id": "cart_alpha",
+        "currency": "USD",
+        "items": [
+            {
+                "sku": "SKU-1",
+                "quantity": 2,
+                "unitCents": 500
+            },
+            {
+                "sku": "SKU-2",
+                "quantity": 1,
+                "unitCents": 1234
+            }
+        ]
+    },
+    {
+        "id": "cart_beta",
+        "currency": "ZAR",
+        "items": [
+            {
+                "sku": "SKU-9",
+                "quantity": 1,
+                "unitCents": 9900
+            }
+        ]
+    }
+]

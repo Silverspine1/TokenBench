@@ -1,0 +1,67 @@
+{
+  "task_id": "logforge_reorg_layout_001",
+  "repo_id": "logforge-cpp",
+  "mode": "atomic",
+  "category": "reorg",
+  "difficulty": "medium",
+  "prompt": "A previous code import left the parsing, statistics and formatting logic collapsed into a single catch-all source file (src/core.cpp) behind one bundled header (include/blob.hpp) that re-declares everything under short internal names in namespace lf, with the CLI and smoke tests rewired to include only that bundled header. This makes the parser, statistics and formatting code hard to maintain.\n\nReorganize the library back into one focused source file per concern: parsing under src/parser/ (line parsing and numeric-field parsing), statistics under src/stats/ (column reading, summary statistics and rolling means), and formatting under src/format/ (fixed-point formatting, column layout and the summary renderer). Expose each concern through exactly three canonical public headers under include/logforge/ -- include/logforge/parser.hpp, include/logforge/stats.hpp and include/logforge/format.hpp -- declaring the public symbols in the logforge namespace. Callers must include those per-concern headers rather than the single bundled header. The observable behavior and the public API must not change.\n\nThe canonical headers must declare: in logforge/parser.hpp the Record type alias, parseLine and parseDouble; in logforge/stats.hpp the Summary struct, summarize, numericColumn and rollingMean; in logforge/format.hpp formatFixed, formatColumns and renderSummary. Remove src/core.cpp and include/blob.hpp.",
+  "issue_title": "Parser, statistics and formatting code is hard to maintain after a legacy import",
+  "issue_body": "A previous code import left the parsing, statistics and formatting logic collapsed into a single catch-all source file (src/core.cpp) behind one bundled header (include/blob.hpp) that re-declares everything under short internal names in namespace lf, with the CLI and smoke tests rewired to include only that bundled header. This makes the parser, statistics and formatting code hard to maintain.\n\nReorganize the library back into one focused source file per concern: parsing under src/parser/ (line parsing and numeric-field parsing), statistics under src/stats/ (column reading, summary statistics and rolling means), and formatting under src/format/ (fixed-point formatting, column layout and the summary renderer). Expose each concern through exactly three canonical public headers under include/logforge/ -- include/logforge/parser.hpp, include/logforge/stats.hpp and include/logforge/format.hpp -- declaring the public symbols in the logforge namespace. Callers must include those per-concern headers rather than the single bundled header. The observable behavior and the public API must not change.\n\nThe canonical headers must declare: in logforge/parser.hpp the Record type alias, parseLine and parseDouble; in logforge/stats.hpp the Summary struct, summarize, numericColumn and rollingMean; in logforge/format.hpp formatFixed, formatColumns and renderSummary. Remove src/core.cpp and include/blob.hpp.",
+  "expected_behavior": [
+    "Parsing, statistics and formatting behavior is unchanged: CSV parsing, numeric-field reading, summary statistics, rolling/windowed means, fixed-point formatting and the summary table all produce the same results as before.",
+    "Each concern is exposed through its canonical public header under include/logforge/ (parser.hpp, stats.hpp, format.hpp), declaring the public symbols in the logforge namespace, so callers include the per-concern headers rather than a single bundled header.",
+    "Each concern lives in its own focused source file under src/parser/, src/stats/ and src/format/, and the catch-all source file and the bundled header are gone."
+  ],
+  "broken_snapshot": "benchmark/repos/logforge-cpp/broken/logforge_reorg_layout_001",
+  "gold_snapshot": "benchmark/repos/logforge-cpp/gold-reorg",
+  "visible_commands": [
+    "python tests_visible/run_visible.py"
+  ],
+  "hidden_commands": [
+    "python benchmark/tests/logforge-cpp/logforge_reorg_layout_001/hidden/run_hidden.py"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "include/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "structure_contract": {
+    "required_paths": [
+      "include/logforge/parser.hpp",
+      "include/logforge/stats.hpp",
+      "include/logforge/format.hpp"
+    ],
+    "forbidden_paths": [
+      "src/core.cpp",
+      "include/blob.hpp"
+    ],
+    "compatibility_imports": [
+      "include/logforge/parser.hpp"
+    ],
+    "public_entrypoints": [
+      "include/logforge/parser.hpp"
+    ]
+  },
+  "expected_failure_summary": "Parser/statistics/formatting concerns are collapsed into a single catch-all translation unit behind one bundled header that re-declares the API under short internal names; the canonical per-concern public headers (logforge/parser.hpp, stats.hpp, format.hpp) do not exist, so behaviour cannot be compiled against its expected canonical headers.",
+  "skills_tested": [
+    "module decomposition",
+    "header/API restoration",
+    "behavior preservation"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 4,
+  "expected_changed_files_max": 14,
+  "task_author_notes": "Broken collapses parser (parseLine/parseDouble), statistics (summarize/numericColumn/rollingMean) and formatting (formatFixed/formatColumns/renderSummary) into a single src/core.cpp behind include/blob.hpp, with all symbols renamed to short internal names in namespace lf and the CLI/visible test rewired through the bundle. The reorg target is intentionally small: three canonical public headers (include/logforge/parser.hpp, stats.hpp, format.hpp in the logforge namespace) backed by one focused source file per concern under src/parser, src/stats, src/format. The hidden test includes only those three canonical headers; restoring them with the named public symbols satisfies both the hidden behaviour tests and the structure contract. Hidden+visible drivers glob src recursively and add the include root so the subdirectory layout compiles."
+}

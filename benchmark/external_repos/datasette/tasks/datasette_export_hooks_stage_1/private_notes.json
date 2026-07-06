@@ -1,0 +1,8 @@
+{
+  "task_type": "staged_implementation",
+  "stage": 1,
+  "stage_group_id": "datasette_export_transform_hooks",
+  "implementation_notes": "The correct implementation adds a hookspec export_row_transform to datasette/hookspecs.py, then calls it in both the stream_csv function (views/base.py) and in the table JSON view row-building path. Each row dict is passed through the hook before being written to output. The hook uses pluggy first_only=False semantics, so the last non-None result wins.",
+  "accepted_solution_notes": "Key files to modify: datasette/hookspecs.py (add hookspec), datasette/views/base.py (call hook in stream_fn), datasette/views/table.py (call hook in row building for JSON). The datasette/plugins.py pm object is used for dispatch.",
+  "calibration_notes": "Hard: model must understand the pluggy hookspec/hookimpl pattern used throughout datasette, and must wire the hook into multiple export paths."
+}

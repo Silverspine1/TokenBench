@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Queue · {{ suite_id }}{% endblock %}
+{% block content %}
+<h1>Task queue · <code>{{ suite_id }}</code></h1>
+<div id="start-panel" class="panel">
+  <label>IDE/ADE <input id="ide_name" placeholder="Cursor"></label>
+  <label>Model <input id="model_name" placeholder="user-entered"></label>
+  <label>Condition
+    <select id="condition_id"></select>
+  </label>
+</div>
+<table>
+  <thead>
+    <tr><th>Repo</th><th>Task</th><th>Category</th><th>Difficulty</th>
+      <th>Status</th><th>Latest</th><th></th></tr>
+  </thead>
+  <tbody id="task-rows"><tr><td colspan="7" class="muted">Loading…</td></tr></tbody>
+</table>
+{% endblock %}
+{% block page_script %}
+<script>window.SUITE_ID = {{ suite_id|tojson }};</script>
+{% endblock %}

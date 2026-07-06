@@ -1,0 +1,96 @@
+diff --git a/index.js b/index.js
+index 7ece983..8b798f1 100644
+--- a/index.js
++++ b/index.js
+@@ -43,6 +43,7 @@ module.exports.EnvHttpProxyAgent = EnvHttpProxyAgent
+ module.exports.RetryAgent = RetryAgent
+ module.exports.H2CClient = H2CClient
+ module.exports.RetryHandler = RetryHandler
++module.exports.AutoRetryHandler = require('./lib/handler/auto-retry-handler')
+ 
+ module.exports.DecoratorHandler = DecoratorHandler
+ module.exports.RedirectHandler = RedirectHandler
+diff --git a/lib/handler/auto-retry-handler.js b/lib/handler/auto-retry-handler.js
+new file mode 100644
+index 0000000..f8d89b7
+--- /dev/null
++++ b/lib/handler/auto-retry-handler.js
+@@ -0,0 +1,78 @@
++'use strict'
++
++// AutoRetryHandler wraps a dispatch handler and transparently retries the
++// request when the response status code is in `retryOnStatus`, up to
++// `maxRetries` times, waiting `retryDelayMs` between attempts.
++//
++//   new AutoRetryHandler(dispatch, opts, handler)
++//
++// `dispatch` is a bound dispatch function (e.g. client.dispatch.bind(client)),
++// `opts` are the dispatch options (may carry maxRetries / retryDelayMs /
++// retryOnStatus), and `handler` is the downstream handler to forward to.
++class AutoRetryHandler {
++  constructor (dispatch, opts, handler) {
++    this.dispatch = dispatch
++    this.opts = opts
++    this.handler = handler
++
++    this.maxRetries = opts.maxRetries ?? 0
++    this.retryDelayMs = opts.retryDelayMs ?? 0
++    this.retryOnStatus = opts.retryOnStatus ?? [503, 429]
++
++    this.retryCount = 0
++    this.requestStarted = false
++    this.willRetry = false
++  }
++
++  onRequestStart (controller, context) {
++    // Forward onRequestStart only for the first attempt; retries re-dispatch
++    // the same logical request and must not re-notify the downstream handler.
++    if (!this.requestStarted) {
++      this.requestStarted = true
++      this.handler.onRequestStart?.(controller, context)
++    }
++  }
++
++  onRequestUpgrade (controller, statusCode, headers, socket) {
++    this.handler.onRequestUpgrade?.(controller, statusCode, headers, socket)
++  }
++
++  onResponseStart (controller, statusCode, headers, statusMessage) {
++    if (
++      this.retryOnStatus.includes(statusCode) &&
++      this.retryCount < this.maxRetries
++    ) {
++      // Swallow this (to-be-retried) response; do not forward it downstream.
++      this.willRetry = true
++      return
++    }
++    this.willRetry = false
++    this.handler.onResponseStart?.(controller, statusCode, headers, statusMessage)
++  }
++
++  onResponseData (controller, chunk) {
++    if (this.willRetry) return
++    this.handler.onResponseData?.(controller, chunk)
++  }
++
++  onResponseEnd (controller, trailers) {
++    if (this.willRetry) {
++      this.willRetry = false
++      this.retryCount++
++      const redispatch = () => this.dispatch(this.opts, this)
++      if (this.retryDelayMs > 0) {
++        setTimeout(redispatch, this.retryDelayMs)
++      } else {
++        redispatch()
++      }
++      return
++    }
++    this.handler.onResponseEnd?.(controller, trailers)
++  }
++
++  onResponseError (controller, error) {
++    this.handler.onResponseError?.(controller, error)
++  }
++}
++
++module.exports = AutoRetryHandler

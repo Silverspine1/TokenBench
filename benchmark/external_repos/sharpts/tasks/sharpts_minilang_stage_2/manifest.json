@@ -1,0 +1,67 @@
+{
+  "task_id": "sharpts_minilang_stage_2",
+  "repo_id": "sharpts",
+  "repo_kind": "external_github",
+  "source_ref": "benchmark/external_repos/sharpts/source.json",
+  "base_commit": "33f266f97fcdf2f37f438f4eedaed3b4e7ce05d7",
+  "defect_patch": "",
+  "private_notes_path": "private_notes.json",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "hard",
+  "stage": 2,
+  "stage_group_id": "sharpts_minilang",
+  "previous_stage_task_id": "sharpts_minilang_stage_1",
+  "input_source": "previous_candidate",
+  "issue_title": "Add strings to the mini-language: literals, concatenation, len, upper",
+  "issue_body": "Extend the existing Math.run mini-language (the numeric let/print interpreter) with a string data type. Everything numeric must keep working exactly as before.\n\nNew capabilities:\n- String literals written with double quotes, e.g. \"hello\". They support two escapes: \\\" for a literal double quote and \\n for a newline.\n- The + operator is overloaded: number + number adds (as before); string + string concatenates. Mixing a number and a string (in either order) is a type error.\n- print of a string outputs the raw string content (no surrounding quotes).\n- Two builtins on strings: len(x) returns the string's length as a number, and upper(x) returns the string uppercased.\n\nA type error (such as adding a number to a string) is reported the same way other errors are: Math.run returns a single 'error: <message>' line instead of program output. All numeric behavior from before (precedence, parentheses, unary minus, real division, integer formatting, multi-statement output, undefined-variable and parse errors) must continue to hold.",
+  "prompt": "Building on the existing Math.run mini-language (the numeric let/print interpreter from the previous stage), add a string data type. All existing numeric behavior must keep working unchanged.\n\nAdd:\n- String literals in double quotes, e.g. \"hello\". Support exactly two escape sequences inside them: \\\" for a literal double-quote character and \\n for a newline character.\n- Overload the + operator: number + number still adds; string + string concatenates; mixing a number and a string in a + (in either order) is a type error.\n- print of a string emits the raw string content (no surrounding quotes), so print \"hi\" outputs the line hi.\n- Two string builtins, callable with function-call syntax: len(x) returns the length of string x as a number (usable in further arithmetic), and upper(x) returns x uppercased.\n\nReport a type error (e.g. number + string) the same way the language already reports errors: Math.run returns a single 'error: <message>' line instead of any program output. Everything from the numeric stage must still hold: operator precedence and left-associativity, parentheses and nesting, unary minus, real division with JavaScript-style integer formatting, multi-statement output joined by newlines, and the undefined-variable / parse-error behavior. Integrate strings into the existing subsystem rather than building a separate path.",
+  "expected_behavior": [
+    "String literals print their raw content: 'print \"hello\"' returns 'hello'.",
+    "string + string concatenates: 'print \"foo\" + \"bar\"' is 'foobar'; concatenation works through variables too.",
+    "len returns string length as a number usable in arithmetic: 'print len(\"hello\")' is 5; 'print len(\"abcd\") + 1' is 5.",
+    "upper uppercases a string and composes with concatenation: 'print upper(\"ab\") + \"CD\"' is 'ABCD'.",
+    "Escapes work inside string literals: \\\" yields a literal quote and \\n yields a newline.",
+    "Mixing number and string in + is a type error: 'print 1 + \"x\"' and 'print \"x\" + 1' return an 'error: ...' line.",
+    "All numeric behavior carries over: 'print 2 + 3 * 4' is 14, 'print 7 / 2' is 3.5, and integer-valued results print without a trailing decimal."
+  ],
+  "visible_commands": [
+    "python benchmark/external_repos/sharpts/hidden_driver.py benchmark/external_repos/sharpts/tasks/sharpts_minilang_stage_2/visible_tests"
+  ],
+  "hidden_commands": [
+    "python benchmark/external_repos/sharpts/hidden_driver.py benchmark/external_repos/sharpts/tasks/sharpts_minilang_stage_2/hidden_tests"
+  ],
+  "allowed_runtime_seconds": 1200,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "Runtime/**",
+    "Execution/**",
+    "Parsing/**",
+    "TypeSystem/**",
+    "Compilation/**"
+  ],
+  "ignored_paths": [
+    "bin/**",
+    "obj/**",
+    "tests_visible/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "skills_tested": [
+    "threading a new value type through every layer of an existing interpreter (lexer, parser, AST, values, evaluator)",
+    "lexing quoted string literals with escape sequences",
+    "type-aware operator overloading and type-error reporting",
+    "adding builtin functions with call syntax to an expression language",
+    "preserving existing numeric behavior while extending the value model"
+  ],
+  "root_cause_files": [
+    "Runtime/BuiltIns/MathBuiltIns.cs"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 12,
+  "broken_snapshot": "",
+  "gold_snapshot": ""
+}

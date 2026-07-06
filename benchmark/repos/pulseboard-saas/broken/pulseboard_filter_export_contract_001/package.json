@@ -1,0 +1,11 @@
+{
+  "name": "pulseboard-saas",
+  "version": "0.1.0",
+  "description": "Billing and reporting helpers for the Pulseboard invoice dashboard.",
+  "private": true,
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node tests_visible/run_visible_tests.js"
+  },
+  "dependencies": {}
+}

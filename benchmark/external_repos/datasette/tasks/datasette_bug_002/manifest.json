@@ -1,0 +1,53 @@
+{
+  "task_id": "datasette_bug_002",
+  "repo_id": "datasette",
+  "repo_kind": "external_github",
+  "source_ref": "benchmark/external_repos/datasette/source.json",
+  "base_commit": "ad6fe47a950ba66794b6b947911c628a5520feda",
+  "defect_patch": "defect.patch",
+  "private_notes_path": "private_notes.json",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "medium",
+  "issue_title": "Configured metadata is missing from a table's JSON API output",
+  "issue_body": "License and source values configured for an individual table do not appear in that table's JSON API response, even though they are present in the configuration. The same kinds of values configured at the database level still appear correctly.",
+  "prompt": "License and source values configured for an individual table do not appear in that table's JSON API response, even though they are present in the configuration. The same kinds of values configured at the database level still appear correctly.",
+  "expected_behavior": [
+    "Table-level license and source fields defined in metadata are returned in the JSON API response.",
+    "Database-level license and source fields continue to work and are unaffected.",
+    "Other table metadata (description, size hints, etc.) is unaffected.",
+    "The HTML interface shows the same metadata as the JSON API."
+  ],
+  "visible_commands": [
+    "python -m pytest tests_visible/ -x -q"
+  ],
+  "hidden_commands": [
+    "python -m pytest benchmark/external_repos/datasette/tasks/datasette_bug_002/hidden_tests/ -x -q"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "datasette/**"
+  ],
+  "ignored_paths": [
+    "tests/**",
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "skills_tested": [
+    "metadata propagation",
+    "config loading",
+    "JSON output"
+  ],
+  "root_cause_files": [
+    "datasette/app.py"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 2,
+  "broken_snapshot": "",
+  "gold_snapshot": ""
+}

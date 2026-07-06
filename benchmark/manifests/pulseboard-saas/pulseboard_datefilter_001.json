@@ -1,0 +1,43 @@
+{
+  "task_id": "pulseboard_datefilter_001",
+  "repo_id": "pulseboard-saas",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "Fix the due-date filter. invoicesDueOnOrBefore must include every invoice whose LOCAL due date is on or before the given local end date. Invoices due late in the evening of the end date are currently dropped; fix the date handling so the local calendar date is used.",
+  "broken_snapshot": "benchmark/repos/pulseboard-saas/broken/pulseboard_datefilter_001",
+  "gold_snapshot": "benchmark/repos/pulseboard-saas/gold",
+  "visible_commands": [
+    "node tests_visible/run_visible_tests.js"
+  ],
+  "hidden_commands": [
+    "node benchmark/tests/pulseboard-saas/pulseboard_datefilter_001/hidden/test_hidden_datefilter.js"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "localDueDate converts the dueDate to UTC midnight, so an evening local due date rolls into the next UTC day and is wrongly excluded.",
+  "skills_tested": [
+    "timezone handling",
+    "date boundary correctness",
+    "filtering logic"
+  ],
+  "root_cause_files": [
+    "src/datefilter.js"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 1,
+  "task_author_notes": "Correct fix: use the local calendar date (the date portion of the ISO string) rather than the UTC-converted date."
+}

@@ -1,0 +1,22 @@
+{
+  "docs": [
+    {
+      "id": "a",
+      "title": "Alpha Note",
+      "path": "notes/alpha.md",
+      "content": "the quick brown fox jumps over the lazy dog"
+    },
+    {
+      "id": "b",
+      "title": "Beta Note",
+      "path": "notes/sub/beta.md",
+      "content": "the fox runs fast and the dog sleeps"
+    },
+    {
+      "id": "c",
+      "title": "Gamma Note",
+      "path": "readme.md",
+      "content": "welcome to the vault desk reference vault"
+    }
+  ]
+}

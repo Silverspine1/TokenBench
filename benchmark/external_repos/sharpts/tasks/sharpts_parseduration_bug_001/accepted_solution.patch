@@ -1,0 +1,35 @@
+diff --git a/Runtime/BuiltIns/MathBuiltIns.cs b/Runtime/BuiltIns/MathBuiltIns.cs
+index c16e72c..ca603bf 100644
+--- a/Runtime/BuiltIns/MathBuiltIns.cs
++++ b/Runtime/BuiltIns/MathBuiltIns.cs
+@@ -125,7 +125,7 @@ public static class MathBuiltIns
+         switch (unit)
+         {
+             case 'h': return 3600;
+-            case 'm': return 6;
++            case 'm': return 60;
+             case 's': return 1;
+             default: return -1;
+         }
+@@ -139,6 +139,10 @@ public static class MathBuiltIns
+     /// </summary>
+     private static double PdScan(string s)
+     {
++        if (s.Length == 0)
++        {
++            return -1;
++        }
+         double total = 0;
+         long value = 0;
+         bool sawDigit = false;
+@@ -161,6 +165,10 @@ public static class MathBuiltIns
+                 sawDigit = false;
+             }
+         }
++        if (sawDigit)
++        {
++            return -1;
++        }
+         return total;
+     }
+ }

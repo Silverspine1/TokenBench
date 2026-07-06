@@ -1,0 +1,49 @@
+{
+  "task_id": "marketlab_warmup_alignment_001",
+  "repo_id": "marketlab-ml",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "Rolling features and forward-looking labels end up describing different rows once the input has missing periods and the horizon is bigger than one. With simple, contiguous data everything looks fine, but with gaps the feature rows and label rows no longer correspond to the same underlying rows, and a feature can end up reflecting a value it should not have seen yet. Features and labels need to describe the same rows.\n\nExpected:\n- Each feature is based only on rows before the row it describes - never the current row or a later one.\n- After the initial rolling window is dropped, the remaining features and labels still refer to the same rows.\n- This holds for larger horizons and for data with gaps, not just contiguous data.\n- Keep the existing tests passing.",
+  "issue_title": "Feature and label rows stop lining up after gaps in the data",
+  "issue_body": "Rolling features and forward-looking labels end up describing different rows once the input has missing periods and the horizon is bigger than one. With simple, contiguous data everything looks fine, but with gaps the feature rows and label rows no longer correspond to the same underlying rows, and a feature can end up reflecting a value it should not have seen yet. Features and labels need to describe the same rows.\n\nExpected:\n- Each feature is based only on rows before the row it describes - never the current row or a later one.\n- After the initial rolling window is dropped, the remaining features and labels still refer to the same rows.\n- This holds for larger horizons and for data with gaps, not just contiguous data.\n- Keep the existing tests passing.",
+  "broken_snapshot": "benchmark/repos/marketlab-ml/broken/marketlab_warmup_alignment_001",
+  "gold_snapshot": "benchmark/repos/marketlab-ml/gold",
+  "visible_commands": [
+    "pytest -q tests_visible"
+  ],
+  "hidden_commands": [
+    "pytest -q benchmark/tests/marketlab-ml/marketlab_warmup_alignment_001/hidden"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "marketlab/**",
+    "configs/**",
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/logs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Rolling window includes the current row, and the dataset warmup trim is off by one, so features peek at the current value and labels misalign on gapped/multi-horizon data.",
+  "skills_tested": [
+    "causality / point-in-time correctness",
+    "index alignment",
+    "edge-case handling"
+  ],
+  "root_cause_files": [
+    "marketlab/features.py",
+    "marketlab/data_loader.py"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "rolling_mean_prior must slice values[start:i] (exclusive of i). build_dataset must drop the first `window` rows (i < window). Reject fixes that special-case the visible contiguous inputs."
+}

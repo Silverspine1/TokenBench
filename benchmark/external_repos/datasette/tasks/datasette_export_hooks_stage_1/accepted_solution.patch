@@ -1,0 +1,99 @@
+diff --git a/datasette/hookspecs.py b/datasette/hookspecs.py
+index 7c56f88..dad67a6 100644
+--- a/datasette/hookspecs.py
++++ b/datasette/hookspecs.py
+@@ -263,3 +263,13 @@ def write_wrapper(datasette, database, request, transaction):
+ 
+     Return ``None`` to skip wrapping.
+     """
++
++
++@hookspec
++def export_row_transform(datasette, database, table, row, export_format):
++    """Transform a single row dict before it is written to a CSV or JSON export"""
++
++
++@hookspec
++def export_rows_transform(datasette, database, table, rows, export_format):
++    """Transform a batch (list) of row dicts before export; preferred over export_row_transform when implemented"""
+diff --git a/datasette/renderer.py b/datasette/renderer.py
+index f40e3db..7bb3863 100644
+--- a/datasette/renderer.py
++++ b/datasette/renderer.py
+@@ -8,6 +8,7 @@ from datasette.utils import (
+     sqlite3,
+ )
+ from datasette.utils.asgi import Response
++from datasette.plugins import pm
+ 
+ 
+ def convert_specific_columns_to_json(rows, columns, json_cols):
+@@ -28,7 +29,7 @@ def convert_specific_columns_to_json(rows, columns, json_cols):
+     return new_rows
+ 
+ 
+-def json_renderer(request, args, data, error, truncated=None):
++def json_renderer(request, args, data, error, truncated=None, datasette=None, database=None, table=None):
+     """Render a response as JSON"""
+     status_code = 200
+ 
+@@ -70,6 +71,23 @@ def json_renderer(request, args, data, error, truncated=None):
+         rows = data.get("rows")
+         if rows and columns and not isinstance(rows[0], dict):
+             data["rows"] = [dict(zip(columns, row)) for row in rows]
++        # export_row_transform hook: transform each row dict before serialization
++        if datasette is not None and data.get("rows"):
++            _cols = columns or list(data["rows"][0].keys() if isinstance(data["rows"][0], dict) else range(len(data["rows"][0])))
++            _hooked = []
++            for _row in data["rows"]:
++                _row_dict = dict(_row) if isinstance(_row, dict) else dict(zip(_cols, _row))
++                for _result in pm.hook.export_row_transform(
++                    datasette=datasette,
++                    database=database,
++                    table=table,
++                    row=dict(_row_dict),
++                    export_format="json",
++                ):
++                    if _result is not None:
++                        _row_dict = _result
++                _hooked.append(_row_dict)
++            data["rows"] = _hooked
+         if shape == "object":
+             shape_error = None
+             if "primary_keys" not in data:
+diff --git a/datasette/views/base.py b/datasette/views/base.py
+index 2e2a544..73b4a2f 100644
+--- a/datasette/views/base.py
++++ b/datasette/views/base.py
+@@ -9,6 +9,7 @@ from markupsafe import escape
+ 
+ 
+ from datasette.database import QueryInterrupted
++from datasette.plugins import pm
+ from datasette.utils.asgi import Request
+ from datasette.utils import (
+     add_cors_headers,
+@@ -506,6 +507,23 @@ async def stream_csv(datasette, fetch_data, request, database):
+                         await writer.writerow(headings)
+                     first = False
+                 next = data.get("next")
++                # export_row_transform hook: transform each row dict before writing
++                _cols = data["columns"]
++                _table = data.get("table")
++                _hooked_rows = []
++                for _row in data["rows"]:
++                    _row_dict = _row if isinstance(_row, dict) else dict(zip(_cols, _row))
++                    for _result in pm.hook.export_row_transform(
++                        datasette=datasette,
++                        database=database,
++                        table=_table,
++                        row=dict(_row_dict),
++                        export_format="csv",
++                    ):
++                        if _result is not None:
++                            _row_dict = _result
++                    _hooked_rows.append([_row_dict.get(_c) for _c in _cols])
++                data["rows"] = _hooked_rows
+                 for row in data["rows"]:
+                     if any(isinstance(r, bytes) for r in row):
+                         new_row = []

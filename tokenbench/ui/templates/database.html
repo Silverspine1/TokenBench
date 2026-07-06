@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Database · TokenBench{% endblock %}
+{% block content %}
+<h1>Results database</h1>
+<div class="panel">
+  <button class="btn primary" id="rebuild">Rebuild from runs/</button>
+  <span class="muted">Re-ingests all run JSON. Overwrites manual edits.</span>
+  <div id="tables" class="tabs"></div>
+</div>
+<p class="muted" id="meta"></p>
+<div id="grid-wrap" style="overflow:auto">
+  <table id="grid"><thead></thead><tbody></tbody></table>
+</div>
+{% endblock %}
+{% block page_script %}
+<script>window.DB_PAGE = true;</script>
+{% endblock %}

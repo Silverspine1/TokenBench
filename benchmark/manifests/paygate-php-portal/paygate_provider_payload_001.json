@@ -1,0 +1,37 @@
+{
+  "task_id": "paygate_provider_payload_001",
+  "repo_id": "paygate-php-portal",
+  "mode": "atomic",
+  "category": "contract",
+  "difficulty": "hard",
+  "prompt": "One provider's accepted transactions sometimes show as unpaid. Normalise incoming gateway events so both providers' payloads are understood. GatewayEventNormalizer::normalize(string $provider, array $payload) must return an array with exactly the keys provider, eventId, paymentReference, status, amountCents, and currency. Both the older and newer Stripe-style and PayFast-style fixture payloads must be supported, status casing must be canonicalised to the documented values, amounts must be integer cents, and signature verification must remain enforced before any state change.",
+  "issue_title": "Some accepted transactions show as unpaid in admin reports",
+  "issue_body": "One provider's accepted transactions sometimes show as unpaid. Normalise incoming gateway events so both providers' payloads are understood. GatewayEventNormalizer::normalize(string $provider, array $payload) must return an array with exactly the keys provider, eventId, paymentReference, status, amountCents, and currency. Both the older and newer Stripe-style and PayFast-style fixture payloads must be supported, status casing must be canonicalised to the documented values, amounts must be integer cents, and signature verification must remain enforced before any state change.",
+  "expected_behavior": [
+    "normalize returns the six documented keys for every supported payload.",
+    "Older and newer Stripe-style and PayFast-style payloads are all supported.",
+    "Status values are canonicalised regardless of casing.",
+    "Invalid signatures are rejected before any state change."
+  ],
+  "broken_snapshot": "benchmark/repos/paygate-php-portal/broken/paygate_provider_payload_001",
+  "gold_snapshot": "benchmark/repos/paygate-php-portal/gold",
+  "visible_commands": ["python tests_visible/run_visible.py"],
+  "hidden_commands": ["python -m pytest benchmark/tests/paygate-php-portal/paygate_provider_payload_001/hidden/test_hidden.py -q"],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": ["app/**", "public/**"],
+  "ignored_paths": ["docs/**", "fixtures/**"],
+  "forbidden_paths": ["benchmark/**", "tests/**", ".tokenbench/**"],
+  "expected_failure_summary": "GatewayEventNormalizer only handles the newer data.object / m_payment_id shapes and returns the raw provider status without canonicalisation, so older payloads come out empty and mixed-case statuses are not mapped to the documented values.",
+  "skills_tested": ["payload normalisation", "backward compatibility", "status canonicalisation"],
+  "root_cause_files": [],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 2,
+  "output_stress": {
+    "enabled": true,
+    "expected_visible_output_bytes_min": 50000,
+    "expected_visible_output_bytes_max": 300000
+  },
+  "task_author_notes": "Restore the old-shape else branches in normalizeStripe (event_id/payment_ref/amount_cents) and normalizePayFast (payment_id/reference/amount), and wrap status with PaymentStatus::normalize in both. old_stripe_payload, old_payfast_payload, and mixed_status_casing fail on broken; new_* and invalid_signature pass."
+}

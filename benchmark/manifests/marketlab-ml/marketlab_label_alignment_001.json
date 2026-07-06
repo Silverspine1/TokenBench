@@ -1,0 +1,46 @@
+{
+  "task_id": "marketlab_label_alignment_001",
+  "repo_id": "marketlab-ml",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "frontier_hard",
+  "prompt": "Classification labels are misaligned: the label at row i must reflect whether prices[i + horizon] is greater than prices[i], and the final horizon rows must be unlabelled (None). Fix the horizon alignment in make_labels.",
+  "broken_snapshot": "benchmark/repos/marketlab-ml/broken/marketlab_label_alignment_001",
+  "gold_snapshot": "benchmark/repos/marketlab-ml/gold",
+  "visible_commands": [
+    "pytest -q tests_visible"
+  ],
+  "hidden_commands": [
+    "pytest -q benchmark/tests/marketlab-ml/marketlab_label_alignment_001/hidden"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "marketlab/**",
+    "configs/**",
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/logs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Label offset is i + horizon + TRAILING_UNLABELLED_PER_HORIZON, looking one period too far ahead. The tempting nearby constant makes a wrong off-by-one fix attractive.",
+  "skills_tested": [
+    "label alignment",
+    "off-by-one reasoning",
+    "lookahead bias"
+  ],
+  "root_cause_files": [
+    "marketlab/labels.py"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 1,
+  "task_author_notes": "Correct fix: j = i + horizon (drop the guard from the offset). Both i+horizon-1 and i+horizon+1 are wrong and are rejected by the hidden tests."
+}

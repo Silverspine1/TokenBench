@@ -1,0 +1,49 @@
+{
+  "task_id": "marketlab_cost_contract_001",
+  "repo_id": "marketlab-ml",
+  "mode": "atomic",
+  "category": "contract",
+  "difficulty": "hard",
+  "prompt": "When trading costs are turned on, the net result and the cost figures in the generated backtest report come out lower than they should be - part of the cost the strategy actually incurred is missing from the totals. The report is meant to show the full trading cost and a breakdown of where it came from.\n\nExpected:\n- The reported total cost reflects everything the configured cost settings should charge.\n- The cost breakdown in the report adds up to that reported total.\n- Existing report fields and any existing cost helper APIs keep working for current callers.\n- Keep the existing tests passing.",
+  "issue_title": "Backtest cost totals come out too low",
+  "issue_body": "When trading costs are turned on, the net result and the cost figures in the generated backtest report come out lower than they should be - part of the cost the strategy actually incurred is missing from the totals. The report is meant to show the full trading cost and a breakdown of where it came from.\n\nExpected:\n- The reported total cost reflects everything the configured cost settings should charge.\n- The cost breakdown in the report adds up to that reported total.\n- Existing report fields and any existing cost helper APIs keep working for current callers.\n- Keep the existing tests passing.",
+  "broken_snapshot": "benchmark/repos/marketlab-ml/broken/marketlab_cost_contract_001",
+  "gold_snapshot": "benchmark/repos/marketlab-ml/gold",
+  "visible_commands": [
+    "pytest -q tests_visible"
+  ],
+  "hidden_commands": [
+    "pytest -q benchmark/tests/marketlab-ml/marketlab_cost_contract_001/hidden"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "marketlab/**",
+    "configs/**",
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/logs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The cost total drops the spread component and the report recomputes its own fee+slippage-only total, so net P&L and the cost breakdown are understated.",
+  "skills_tested": [
+    "contract tracing",
+    "numerical correctness",
+    "backward compatibility"
+  ],
+  "root_cause_files": [
+    "marketlab/costs.py",
+    "marketlab/reports.py"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "CostBreakdown.total must sum fee+slippage+spread; build_report must use the full total (or cb.total) for cost_breakdown and net. Reject fixes that make everything fee-only."
+}

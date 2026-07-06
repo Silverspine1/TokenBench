@@ -1,0 +1,6 @@
+{
+  "root_cause_files": ["lib/mock/mock-utils.js"],
+  "injection_strategy": "In getMockDispatch, changed `const resolvedPath = typeof basePath === 'string' ? safeUrl(basePath) : basePath` to skip the safeUrl normalization (which sorts query params). The registered interceptor's path still goes through safeUrl in the filter. With the incoming path unsorted and the registered path sorted, different query parameter orderings fail to match.",
+  "expected_failure_summary": "Mock interceptors registered as ?a=1&b=2 fail to match requests arriving with ?b=2&a=1. The path comparison sees a sorted registered path vs an unsorted incoming path.",
+  "calibration_notes": "Hard: model must understand that safeUrl sorts query params and that both the incoming and registered paths must go through it. The fix is restoring safeUrl(basePath) for the incoming path."
+}

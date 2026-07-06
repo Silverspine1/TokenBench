@@ -1,0 +1,49 @@
+{
+  "task_id": "marketlab_multi_asset_split_001",
+  "repo_id": "marketlab-ml",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "When a dataset mixes several symbols together, the train/test split behaves badly and evaluation comes out far too optimistic. Some symbols end up with no test data, or no training data, and a check that is supposed to catch ordering problems in the split never reports one. Each symbol should get a fair, realistic split of its own history.\n\nExpected:\n- Every symbol ends up with both training and test rows, sized by the requested test fraction.\n- No symbol is trained on its own future: each symbol's training rows all come before its test rows.\n- The split's ordering check actually flags an ordering problem when one is present.\n- Ordering stays deterministic across runs.",
+  "issue_title": "Evaluation looks unrealistically good on multi-symbol datasets",
+  "issue_body": "When a dataset mixes several symbols together, the train/test split behaves badly and evaluation comes out far too optimistic. Some symbols end up with no test data, or no training data, and a check that is supposed to catch ordering problems in the split never reports one. Each symbol should get a fair, realistic split of its own history.\n\nExpected:\n- Every symbol ends up with both training and test rows, sized by the requested test fraction.\n- No symbol is trained on its own future: each symbol's training rows all come before its test rows.\n- The split's ordering check actually flags an ordering problem when one is present.\n- Ordering stays deterministic across runs.",
+  "broken_snapshot": "benchmark/repos/marketlab-ml/broken/marketlab_multi_asset_split_001",
+  "gold_snapshot": "benchmark/repos/marketlab-ml/gold",
+  "visible_commands": [
+    "pytest -q tests_visible"
+  ],
+  "hidden_commands": [
+    "pytest -q benchmark/tests/marketlab-ml/marketlab_multi_asset_split_001/hidden"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "marketlab/**",
+    "configs/**",
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/logs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The multi-asset split sorts globally by time and cuts once by count, so a sparse symbol loses its train or test rows; the validation helper always returns clean.",
+  "skills_tested": [
+    "time-series correctness",
+    "per-group invariants",
+    "state/data flow"
+  ],
+  "root_cause_files": [
+    "marketlab/split.py",
+    "marketlab/validation.py"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "Split must apply test_size per symbol. Validation no_symbol_time_overlap must compare per symbol. Reject a global single cut and reject an always-True validation."
+}

@@ -1,0 +1,5 @@
+[
+  {"id": 1, "name": "Acme", "region": "ZA", "active": true, "lifetimeSpendCents": 1500000},
+  {"id": 2, "name": "Globex", "region": "US", "active": true, "lifetimeSpendCents": 250000},
+  {"id": 3, "name": "Initech", "region": "ZA", "active": false, "lifetimeSpendCents": 50000}
+]

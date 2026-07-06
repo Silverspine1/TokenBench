@@ -1,0 +1,6 @@
+[
+  { "id": "pay-1", "invoice_id": "inv-1001", "tenant_id": "t_acme",   "amount_cents": 5000, "paid_at": "2026-01-06" },
+  { "id": "pay-2", "invoice_id": "inv-1002", "tenant_id": "t_acme",   "amount_cents": 4000, "paid_at": "2026-01-10" },
+  { "id": "pay-3", "invoice_id": "inv-1002", "tenant_id": "t_acme",   "amount_cents": 1000, "paid_at": "2026-01-11" },
+  { "id": "pay-4", "invoice_id": "inv-2001", "tenant_id": "t_globex", "amount_cents": 10000, "paid_at": "2026-01-08" }
+]

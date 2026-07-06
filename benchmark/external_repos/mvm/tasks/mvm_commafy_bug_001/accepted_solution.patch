@@ -1,0 +1,29 @@
+diff --git a/stdlib/core/tbx.go b/stdlib/core/tbx.go
+index 1108487..14c55b3 100644
+--- a/stdlib/core/tbx.go
++++ b/stdlib/core/tbx.go
+@@ -16,18 +16,19 @@ import (
+ // grouped digits, e.g. -1500 -> "-1,500". Zero renders as "0".
+ func tbxCommafy(n int) string {
+ 	if n < 0 {
+-		return tbxGroup(strconv.Itoa(-n))
++		return "-" + tbxGroup(strconv.Itoa(-n))
+ 	}
+ 	return tbxGroup(strconv.Itoa(n))
+ }
+ 
+ // tbxGroup inserts a comma into a string of decimal digits so the digits are
+-// split into groups of three. The boundary is decided from the count walked so
+-// far from the left edge of the string.
++// split into groups of three. The boundary is decided from the count of digits
++// remaining to the right edge of the string.
+ func tbxGroup(s string) string {
+ 	var b strings.Builder
+-	for i := 0; i < len(s); i++ {
+-		if i > 0 && i%3 == 0 {
++	n := len(s)
++	for i := 0; i < n; i++ {
++		if i > 0 && (n-i)%3 == 0 {
+ 			b.WriteByte(',')
+ 		}
+ 		b.WriteByte(s[i])

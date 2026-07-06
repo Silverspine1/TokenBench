@@ -1,0 +1,65 @@
+{
+  "task_id": "mvm_minilang_stage_1",
+  "repo_id": "mvm",
+  "repo_kind": "external_github",
+  "source_ref": "benchmark/external_repos/mvm/source.json",
+  "base_commit": "f0d101dad05ec263ed1f195bee51ff2f4a7a7925",
+  "defect_patch": "",
+  "private_notes_path": "private_notes.json",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "hard",
+  "stage": 1,
+  "stage_group_id": "mvm_minilang",
+  "next_stage_task_id": "mvm_minilang_stage_2",
+  "issue_title": "Build a small integer mini-language interpreter exposed as tbx.Run",
+  "issue_body": "We want a tiny embedded scripting language that guest programs can run by calling a single standard-library function. Add a callable named tbx.Run with the signature Run(src string) string. It takes the full source text of a mini-language program, executes it, and returns the program's printed output as a single string: the lines produced by the program's print statements joined with '\\n' (newline), with no trailing newline.\n\nGuest programs call it like:\n\n    package main\n    import (\"fmt\"; \"tbx\")\n    func main(){ fmt.Println(tbx.Run(\"let x = 2+3\\nprint x\")) }\n\nThe mini-language for this stage (integers only):\n\nA program is a sequence of statements separated by newlines or semicolons (';'). Blank statements are ignored. There are exactly two statement forms:\n  - let <ident> = <expr>   binds the value of <expr> to a variable named <ident>.\n  - print <expr>           evaluates <expr> and emits one output line.\n\nExpressions are integer arithmetic:\n  - Operands: non-negative integer literals and variables (identifiers previously bound with let).\n  - Operators: + - * / with standard precedence (* and / bind tighter than + and -), all left-associative (so 10-3-2 is (10-3)-2 = 5 and 8/4/2 is (8/4)/2 = 1).\n  - Parentheses ( ) group sub-expressions and may be nested.\n  - Unary minus is allowed in any position: -5, 3 * -2, 2 - -3, -(2+3).\n  - Integer division truncates toward zero, matching Go's int division: 7/2 -> 3, -7/2 -> -3.\n  - Whitespace anywhere inside a statement is ignored.\n\nError handling: if the program references an undefined variable, or fails to parse, tbx.Run returns a single line of the form 'error: <msg>' instead of normal output (for example referencing an unbound variable, or an incomplete expression). The exact <msg> text is up to you; only the 'error: ' prefix matters.\n\nImplement this as a clean, multi-file Go package of your own (lexer, parser, evaluator, etc. as separate files), and expose it through tbx.Run. Figure out how this interpreter registers standard-library callables for guest code by reading the existing core stdlib, and register tbx the same way. The guest import path must be \"tbx\" and the callable must be \"Run\".",
+  "prompt": "Build a tiny embedded mini-language interpreter for this Go interpreter project and expose it to guest programs as a standard-library callable named tbx.Run with the signature Run(src string) string. It takes the full source text of a mini-language program, runs it, and returns the program's printed output: the lines emitted by print statements joined with '\\n' (newline), with no trailing newline.\n\nGuest programs use it like:\n\n    package main\n    import (\"fmt\"; \"tbx\")\n    func main(){ fmt.Println(tbx.Run(\"let x = 2+3\\nprint x\")) }\n\nThe mini-language (integers only in this stage):\n\n- A program is a sequence of statements separated by newlines or semicolons (';'); blank statements are ignored.\n- Two statement forms: `let <ident> = <expr>` binds <expr> to the variable <ident>; `print <expr>` evaluates <expr> and emits one output line.\n- Expressions: non-negative integer literals, variables, and the operators + - * / with standard precedence (* and / bind tighter than + and -), all left-associative. Parentheses group and nest. Unary minus is allowed in any position (-5, 3 * -2, 2 - -3, -(2+3)). Integer division truncates toward zero like Go's int division (7/2 -> 3, -7/2 -> -3). Whitespace inside a statement is ignored.\n- If the program references an undefined variable or fails to parse, tbx.Run returns a single line 'error: <msg>' instead of normal output; the exact message text is your choice, only the 'error: ' prefix matters.\n\nImplement the interpreter as a clean, multi-file Go package of your own (separate files for lexing, parsing, evaluation, and so on). Discover how this project registers standard-library callables for guest code by reading the existing core stdlib, and register tbx the same way. The guest import path must be \"tbx\" and the callable must be \"Run\".",
+  "expected_behavior": [
+    "Guest programs can import \"tbx\" and call tbx.Run(src) to run a mini-language program and receive its printed output as a string.",
+    "let bindings, print, integer +, -, *, / with correct precedence and left-associativity, parentheses, unary minus in any position, truncating integer division, and whitespace handling all match the stated contract.",
+    "Printed lines are joined with a single newline and there is no trailing newline.",
+    "Referencing an undefined variable or a program that fails to parse yields a single 'error: <msg>' line."
+  ],
+  "visible_commands": [
+    "go run ./tests_visible"
+  ],
+  "hidden_commands": [
+    "python benchmark/external_repos/mvm/hidden_driver.py benchmark/external_repos/mvm/tasks/mvm_minilang_stage_1/hidden_tests"
+  ],
+  "allowed_runtime_seconds": 1200,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "minilang/**",
+    "stdlib/**",
+    "vm/**",
+    "comp/**",
+    "interp/**"
+  ],
+  "ignored_paths": [
+    "tests_visible/**",
+    "tbhidden/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "skills_tested": [
+    "designing a clean multi-file interpreter package",
+    "recursive-descent expression parsing with precedence and associativity",
+    "unary minus in any position and truncating integer division",
+    "statement splitting and variable environments",
+    "discovering and registering a stdlib callable"
+  ],
+  "root_cause_files": [
+    "minilang/lexer.go",
+    "minilang/parser.go",
+    "minilang/interp.go",
+    "stdlib/core/tbx.go"
+  ],
+  "expected_changed_files_min": 4,
+  "expected_changed_files_max": 12,
+  "broken_snapshot": "",
+  "gold_snapshot": ""
+}

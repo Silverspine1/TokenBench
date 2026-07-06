@@ -1,0 +1,10 @@
+# Conservative config: longer warmup window and wider horizon.
+fee_rate: 0.001
+slippage_rate: 0.0005
+spread_rate: 0.0003
+window: 5
+horizon: 3
+test_size: 0.2
+train_size: 6
+walk_test_size: 3
+initial_equity: 100000.0

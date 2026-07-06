@@ -1,0 +1,46 @@
+{
+  "task_id": "pulseboard_filter_export_contract_001",
+  "repo_id": "pulseboard-saas",
+  "mode": "atomic",
+  "category": "contract",
+  "difficulty": "hard",
+  "prompt": "After a filter is applied, the dashboard table, the CSV export, and the totals can disagree. Users report that the exported file is missing rows that are plainly in the filtered view, that some invoices show a blank amount in the export, and that the order of their own invoice list changes after they run an export. The export should faithfully represent the full filtered result.\n\nExpected:\n- The export contains the same filtered rows the user sees on screen, not just the current page.\n- Every invoice shows its amount in the export.\n- Running an export does not change the caller's original invoice list.\n- Existing output fields stay unchanged.",
+  "issue_title": "CSV export doesn't match the invoice report on screen",
+  "issue_body": "After a filter is applied, the dashboard table, the CSV export, and the totals can disagree. Users report that the exported file is missing rows that are plainly in the filtered view, that some invoices show a blank amount in the export, and that the order of their own invoice list changes after they run an export. The export should faithfully represent the full filtered result.\n\nExpected:\n- The export contains the same filtered rows the user sees on screen, not just the current page.\n- Every invoice shows its amount in the export.\n- Running an export does not change the caller's original invoice list.\n- Existing output fields stay unchanged.",
+  "broken_snapshot": "benchmark/repos/pulseboard-saas/broken/pulseboard_filter_export_contract_001",
+  "gold_snapshot": "benchmark/repos/pulseboard-saas/gold",
+  "visible_commands": [
+    "node tests_visible/run_visible_tests.js"
+  ],
+  "hidden_commands": [
+    "node --test --test-reporter=tap benchmark/tests/pulseboard-saas/pulseboard_filter_export_contract_001/hidden/test_hidden_filter_export_contract.js"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Export reimplements filtering: it mutates the input by sorting, slices to one page, reads a non-canonical amount field; and the schema only reads amountCents, so flat/nested amounts are lost.",
+  "skills_tested": [
+    "contract tracing",
+    "input immutability",
+    "shape compatibility"
+  ],
+  "root_cause_files": [
+    "src/invoices/export.js",
+    "src/invoices/schema.js"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "Export must reuse filterInvoices (full set, no pagination, no mutation). schema.normalizeInvoice must accept amount_cents and amount.cents. Reject a fix that special-cases the visible inputs."
+}

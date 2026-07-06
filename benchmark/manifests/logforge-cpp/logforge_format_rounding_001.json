@@ -1,0 +1,47 @@
+{
+  "task_id": "logforge_format_rounding_001",
+  "repo_id": "logforge-cpp",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "The numbers in the printed report come out wrong in a few ways and users do not trust the figures.\n\nFirst, the values look like they have simply had their extra digits chopped off rather than being turned into the nearest value at the precision asked for, so a figure that should tick up to the next value instead stays low.\n\nSecond, a figure that works out to nothing still shows up wearing a minus sign, so the report displays a signed zero where a plain zero is expected.\n\nThird, in the summary block the smallest and largest figures are shown with fewer digits after the decimal point than the other figures beside them, so the columns do not line up consistently.\n\nFigures that already sit exactly at the requested precision display correctly.\n\nThe report is expected to be trustworthy:\n- A formatted figure is the closest representable value at the requested precision, with the usual tie-breaking, and a figure that amounts to nothing is shown as a plain unsigned zero.\n- Every figure in the summary is shown to the same precision as its neighbours.\n\nPreserve existing public types/fields and unrelated behavior.",
+  "issue_title": "Report figures look untrustworthy",
+  "issue_body": "The numbers in the printed report come out wrong in a few ways and users do not trust the figures.\n\nFirst, the values look like they have simply had their extra digits chopped off rather than being turned into the nearest value at the precision asked for, so a figure that should tick up to the next value instead stays low.\n\nSecond, a figure that works out to nothing still shows up wearing a minus sign, so the report displays a signed zero where a plain zero is expected.\n\nThird, in the summary block the smallest and largest figures are shown with fewer digits after the decimal point than the other figures beside them, so the columns do not line up consistently.\n\nFigures that already sit exactly at the requested precision display correctly.\n\nThe report is expected to be trustworthy:\n- A formatted figure is the closest representable value at the requested precision, with the usual tie-breaking, and a figure that amounts to nothing is shown as a plain unsigned zero.\n- Every figure in the summary is shown to the same precision as its neighbours.\n\nPreserve existing public types/fields and unrelated behavior.",
+  "broken_snapshot": "benchmark/repos/logforge-cpp/broken/logforge_format_rounding_001",
+  "gold_snapshot": "benchmark/repos/logforge-cpp/gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py"
+  ],
+  "hidden_commands": [
+    "python benchmark/tests/logforge-cpp/logforge_format_rounding_001/hidden/run_hidden.py"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "include/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Fixed formatting uses std::trunc instead of std::round, so the fraction is discarded rather than rounded to the nearest, and the negative-zero collapse was dropped so a tiny negative input prints with a leading minus. Independently, the summary renderer formats the min and max figures with precision 1 instead of 2.",
+  "skills_tested": [
+    "decimal rounding",
+    "negative-zero handling",
+    "report formatting"
+  ],
+  "root_cause_files": [
+    "src/format.cpp",
+    "src/render.cpp"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "Two coupled defects. formatFixed must round half away from zero (std::round on the scaled value) instead of std::trunc, and must restore the collapse of a rounded result equal to zero so a negative zero prints as 0. Separately, renderSummary must format the min and max rows at precision 2 like the sum and mean, not precision 1. Fixing only formatFixed still leaves min/max at one decimal; fixing only renderSummary still leaves every figure truncated and the negative zero showing."
+}

@@ -1,0 +1,49 @@
+{
+  "task_id": "marketlab_report_consistency_001",
+  "repo_id": "marketlab-ml",
+  "mode": "atomic",
+  "category": "mixed",
+  "difficulty": "frontier_hard",
+  "prompt": "The generated backtest report is internally inconsistent once trading costs are involved. For some runs the headline result, the equity curve, the trade table, and the cost figures don't agree with each other, and the costs don't line up with the configured settings. A reader should be able to check every number in the report against the others and have them tie out.\n\nExpected:\n- The headline result, the equity curve, and the trade table all tell the same story.\n- The cost figures match the configured cost settings.\n- The order of trades in the report is preserved.\n- Existing metric names stay unchanged.",
+  "issue_title": "Backtest report doesn't reconcile with itself when costs are on",
+  "issue_body": "The generated backtest report is internally inconsistent once trading costs are involved. For some runs the headline result, the equity curve, the trade table, and the cost figures don't agree with each other, and the costs don't line up with the configured settings. A reader should be able to check every number in the report against the others and have them tie out.\n\nExpected:\n- The headline result, the equity curve, and the trade table all tell the same story.\n- The cost figures match the configured cost settings.\n- The order of trades in the report is preserved.\n- Existing metric names stay unchanged.",
+  "broken_snapshot": "benchmark/repos/marketlab-ml/broken/marketlab_report_consistency_001",
+  "gold_snapshot": "benchmark/repos/marketlab-ml/gold",
+  "visible_commands": [
+    "pytest -q tests_visible"
+  ],
+  "hidden_commands": [
+    "pytest -q benchmark/tests/marketlab-ml/marketlab_report_consistency_001/hidden"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "marketlab/**",
+    "configs/**",
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/logs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Report sets net total equal to gross (ignoring cost) while the equity curve uses net, and the fee component is doubled, so net != equity delta and costs do not reconcile.",
+  "skills_tested": [
+    "cross-module reconciliation",
+    "net vs gross discipline",
+    "numerical invariants"
+  ],
+  "root_cause_files": [
+    "marketlab/reports.py",
+    "marketlab/costs.py"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 4,
+  "task_author_notes": "Fix fee_cost (single fee) and build_report net_total = gross - total_cost. Both bugs must be fixed; fixing only one leaves a reconciliation failure."
+}

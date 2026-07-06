@@ -1,0 +1,43 @@
+{
+  "task_id": "pulseboard_pagination_001",
+  "repo_id": "pulseboard-saas",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "medium",
+  "prompt": "Fix invoice list pagination. The page parameter is 1-based: page=1 must return the first pageSize rows, and consecutive pages must tile the list without skipping or duplicating boundary rows.",
+  "broken_snapshot": "benchmark/repos/pulseboard-saas/broken/pulseboard_pagination_001",
+  "gold_snapshot": "benchmark/repos/pulseboard-saas/gold",
+  "visible_commands": [
+    "node tests_visible/run_visible_tests.js"
+  ],
+  "hidden_commands": [
+    "node benchmark/tests/pulseboard-saas/pulseboard_pagination_001/hidden/test_hidden_pagination.js"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "start = page * pageSize treats page as 0-based, so page=1 skips the first page of rows.",
+  "skills_tested": [
+    "off-by-one reasoning",
+    "pagination semantics",
+    "API contracts"
+  ],
+  "root_cause_files": [
+    "src/pagination.js"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 1,
+  "task_author_notes": "Correct fix: start = (page - 1) * pageSize."
+}

@@ -1,0 +1,4 @@
+$ python scripts/run_backtest.py
+labels: [1, 0, 0, 1, 1, 0, 0, None, None]
+metrics: {'final_equity': 99.6, 'total_return': -0.00896, 'num_periods': 7, 'max_drawdown': 0.0379}
+done in 0.04s

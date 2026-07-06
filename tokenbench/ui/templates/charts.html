@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Charts · TokenBench{% endblock %}
+{% block content %}
+<h1>Chart builder</h1>
+<div class="panel" id="controls">
+  <label>Metric <select id="metric"></select></label>
+  <label>Mode
+    <select id="mode">
+      <option value="per_test">Per test</option>
+      <option value="cumulative">Cumulative</option>
+    </select>
+  </label>
+  <label>Chart
+    <select id="chart_type">
+      <option value="line">Line</option>
+      <option value="bar">Bar</option>
+    </select>
+  </label>
+  <label>X axis
+    <select id="x_mode">
+      <option value="time">Test sequence (by time)</option>
+      <option value="task">By task (shared axis)</option>
+    </select>
+  </label>
+  <label>Trials
+    <select id="agg">
+      <option value="sum">Sum</option>
+      <option value="mean">Mean</option>
+      <option value="median">Median</option>
+      <option value="all">All points</option>
+    </select>
+  </label>
+  <button class="btn primary" id="draw">Draw</button>
+</div>
+
+<div class="panel">
+  <strong>Conditions (series):</strong>
+  <div id="conditions" class="tabs"></div>
+</div>
+
+<p class="muted" id="chart-note"></p>
+<canvas id="chart" width="980" height="460" style="max-width:100%;border:1px solid var(--line);border-radius:8px;"></canvas>
+<div id="legend" class="tabs"></div>
+{% endblock %}
+{% block page_script %}
+<script src="/static/charts.js?v={{ static_version }}"></script>
+<script>window.CHARTS_PAGE = true;</script>
+{% endblock %}

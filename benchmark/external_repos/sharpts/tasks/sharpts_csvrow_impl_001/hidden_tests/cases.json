@@ -1,0 +1,67 @@
+[
+  {
+    "name": "plain fields join with a pipe",
+    "program": "c1.ts",
+    "exact": "a|b|c"
+  },
+  {
+    "name": "a middle empty field is preserved",
+    "program": "c2.ts",
+    "exact": "a||c"
+  },
+  {
+    "name": "a comma inside a quoted field is literal content",
+    "program": "c3.ts",
+    "exact": "a,b|c"
+  },
+  {
+    "name": "a doubled double-quote inside a quoted field is one literal quote",
+    "program": "c4.ts",
+    "exact": "she said \"hi\"|x"
+  },
+  {
+    "name": "a quoted field followed by an unquoted field",
+    "program": "c5.ts",
+    "exact": "hello|world"
+  },
+  {
+    "name": "spaces in unquoted fields are kept verbatim",
+    "program": "c6.ts",
+    "exact": " a | b "
+  },
+  {
+    "name": "a single quoted empty field yields an empty string",
+    "program": "c7.ts",
+    "exact": ""
+  },
+  {
+    "name": "a quoted field with a comma sits between two unquoted fields",
+    "program": "c8.ts",
+    "exact": "a|b,c|d"
+  },
+  {
+    "name": "a leading empty field is preserved",
+    "program": "c9.ts",
+    "exact": "|a|b"
+  },
+  {
+    "name": "a trailing empty field is preserved",
+    "program": "c10.ts",
+    "exact": "a|b|"
+  },
+  {
+    "name": "a lone comma is two empty fields",
+    "program": "c11.ts",
+    "exact": "|"
+  },
+  {
+    "name": "an empty field between two quoted fields",
+    "program": "c12.ts",
+    "exact": "x||y"
+  },
+  {
+    "name": "a quoted field of only doubled quotes yields literal quotes",
+    "program": "c13.ts",
+    "exact": "\"\""
+  }
+]

@@ -1,0 +1,36 @@
+{
+  "task_id": "paygate_webhook_replay_001",
+  "repo_id": "paygate-php-portal",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "The payment provider may resend notifications. Retried notifications should not duplicate payments or move an order through its state more than once. Notification verification must stay enforced.",
+  "issue_title": "Retried provider notifications can update an order more than once",
+  "issue_body": "The payment provider may resend notifications. Retried notifications should not duplicate payments or move an order through its state more than once. Notification verification must stay enforced.",
+  "expected_behavior": [
+    "Replayed notifications do not duplicate payments or change invoice totals.",
+    "Distinct successful notifications for the same order follow the existing payment-reference rules.",
+    "Signature verification stays enforced before any state change."
+  ],
+  "broken_snapshot": "benchmark/repos/paygate-php-portal/broken/paygate_webhook_replay_001",
+  "gold_snapshot": "benchmark/repos/paygate-php-portal/gold",
+  "visible_commands": ["python tests_visible/run_visible.py"],
+  "hidden_commands": ["python -m pytest benchmark/tests/paygate-php-portal/paygate_webhook_replay_001/hidden/test_hidden.py -q"],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": ["app/**", "public/**"],
+  "ignored_paths": ["docs/**", "fixtures/**"],
+  "forbidden_paths": ["benchmark/**", "tests/**", ".tokenbench/**"],
+  "expected_failure_summary": "WebhookService::handle no longer short-circuits on a previously processed eventId nor on an already-reconciled payment reference, so a resent notification records a second payment and inflates invoice paidCents. Separately, the failed-status branch now unconditionally forces the order to FAILED and saves it, so a later failed notification pulls an already-paid order back to failed.",
+  "skills_tested": ["idempotency", "webhook replay safety", "state-machine guards"],
+  "root_cause_files": ["app/Services/WebhookService.php"],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 2,
+  "output_stress": {
+    "enabled": true,
+    "expected_visible_output_bytes_min": 50000,
+    "expected_visible_output_bytes_max": 300000
+  },
+  "task_author_notes": "Two coupled defects in WebhookService::handle. (1) Restore the two replay guards: the idempotency->hasProcessed(eventId) duplicate return and the already_reconciled short-circuit when an existing PAID payment with the same reference is seen. (2) Restore the failed-status branch so it only saves a PENDING order with no prior PAID payment instead of unconditionally forcing FAILED. On broken these fail: same_event_replay_*, distinct_event_same_reference_no_double_pay, out_of_order_handled, and failed_after_paid_keeps_paid (the new coupled check). invalid_signature_rejected and failed_then_success pass on broken. A minimal fix of only the replay guards leaves failed_after_paid_keeps_paid failing; the failed-branch fix is also required."
+}

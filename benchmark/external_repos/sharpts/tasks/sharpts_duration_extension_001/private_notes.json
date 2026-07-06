@@ -1,0 +1,63 @@
+{
+  "root_cause_files": ["Runtime/BuiltIns/MathBuiltIns.cs"],
+  "feature": "Math.duration(totalSeconds: number): string is a bespoke (invented) built-in added under the Math namespace, so the static type checker treats it as `any` and no TypeSystem change is needed. It is implemented as a 3-helper pipeline: DBreak -> DParts -> DJoin (plus a DPad zero-pad helper).",
+  "contract": [
+    "1. NEGATIVE rule: if totalSeconds < 0, return the literal string \"0s\" (no negative durations).",
+    "2. BREAK rule: floor totalSeconds (discard fractional seconds), then split into whole hours = floor(t/3600), minutes = floor((t%3600)/60), seconds = t%60.",
+    "3. OMIT rule: leading zero-valued units are omitted, but once a non-zero unit has appeared every lower unit is shown even when it is zero (e.g. 3661 -> 1h..1m..1s; 3600 -> 1h 0m 0s shape; 65 -> 1m..5s; 5 -> 5s; 0 -> 0s).",
+    "4. PAD rule: minutes and seconds are zero-padded to two digits ONLY when they are NOT the first shown unit; the first shown unit (and hours) are never padded (e.g. 3661 -> \"1h 01m 01s\"; 65 -> \"1m 05s\"; 5 -> \"5s\").",
+    "5. JOIN rule: join the visible unit segments with single spaces.",
+    "Combined examples: 3661 -> \"1h 01m 01s\", 3600 -> \"1h 00m 00s\", 65 -> \"1m 05s\", 5 -> \"5s\", 0 -> \"0s\"."
+  ],
+  "three_bugs": {
+    "BUG_1_pad_first_shown_unit": {
+      "helper": "DParts",
+      "hinted": true,
+      "wrong_code": "bool firstShown = i == 0;",
+      "correct_code": "bool firstShown = parts.Count == 0;",
+      "effect": "firstShown is computed from the unit index instead of whether anything has been emitted yet, so a single-digit minutes or seconds value that is the FIRST shown unit gets wrongly zero-padded (e.g. 65 -> \"01m 05s\" instead of \"1m 05s\"; 5 -> \"05s\" instead of \"5s\"). This is the only vaguely-hinted 'numbers/zeros look off' symptom.",
+      "breaks_checks": ["d1", "d2", "d3", "d4"]
+    },
+    "BUG_2_omit_zero_middle_unit": {
+      "helper": "DParts",
+      "hinted": false,
+      "wrong_code": "if (value == 0 && i < units.Length - 1)",
+      "correct_code": "if (parts.Count == 0 && value == 0 && i < units.Length - 1)",
+      "effect": "The omit guard drops the requirement that nothing has been emitted yet, so a zero MIDDLE unit is wrongly omitted once a higher unit is present (e.g. 3600 -> \"1h 00s\" instead of \"1h 00m 00s\"; 7200 -> \"2h 00s\"; 36000 -> \"10h 00s\").",
+      "breaks_checks": ["d5", "d6", "d7"]
+    },
+    "BUG_3_negative_returns_empty": {
+      "helper": "Duration",
+      "hinted": false,
+      "wrong_code": "if (totalSeconds < 0) return \"\";",
+      "correct_code": "if (totalSeconds < 0) return \"0s\";",
+      "effect": "Negative input returns an empty string instead of the bespoke \"0s\" sentinel (e.g. -10 -> \"\" instead of \"0s\").",
+      "breaks_checks": ["d8", "d9"]
+    }
+  },
+  "hidden_cases": {
+    "d1": {"input": 65, "correct": "1m 05s", "broken": "01m 05s", "area": "BUG 1"},
+    "d2": {"input": 125, "correct": "2m 05s", "broken": "02m 05s", "area": "BUG 1"},
+    "d3": {"input": 5, "correct": "5s", "broken": "05s", "area": "BUG 1"},
+    "d4": {"input": 9, "correct": "9s", "broken": "09s", "area": "BUG 1"},
+    "d5": {"input": 3600, "correct": "1h 00m 00s", "broken": "1h 00s", "area": "BUG 2"},
+    "d6": {"input": 7200, "correct": "2h 00m 00s", "broken": "2h 00s", "area": "BUG 2"},
+    "d7": {"input": 36000, "correct": "10h 00m 00s", "broken": "10h 00s", "area": "BUG 2"},
+    "d8": {"input": -10, "correct": "0s", "broken": "", "area": "BUG 3"},
+    "d9": {"input": -1, "correct": "0s", "broken": "", "area": "BUG 3"},
+    "d10": {"input": 3661, "correct": "1h 01m 01s", "broken": "1h 01m 01s", "area": "control (all units present; m/s already non-first so padded in both)"},
+    "d11": {"input": 3725, "correct": "1h 02m 05s", "broken": "1h 02m 05s", "area": "control (hours present so m/s are non-first; no zero middle unit; positive)"},
+    "d12": {"input": 610, "correct": "10m 10s", "broken": "10m 10s", "area": "control (first unit already two digits so pad is a no-op; no zero middle unit; positive)"}
+  },
+  "controls_pass_in_broken": ["d10", "d11", "d12"],
+  "fails_in_broken": ["d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9"],
+  "partial_fix_traps": [
+    "The prompt hints ONLY at the padding/zeros symptom (BUG 1). Fixing only BUG 1 makes d1-d4 pass but leaves BUG 2 (d5, d6, d7) and BUG 3 (d8, d9) failing -> 7/12 = 0.583, still below the 0.9 gate.",
+    "Fixing BUG 1 + BUG 2 but not BUG 3 -> d8/d9 still fail -> 10/12 = 0.833, below gate.",
+    "Fixing BUG 1 + BUG 3 but not BUG 2 -> d5/d6/d7 still fail -> 9/12 = 0.75, below gate.",
+    "A solver who treats this as a single padding fix (matching the vague report) cannot pass; the gate forces reading the DParts omit logic and the negative-input guard to discover the two unmentioned bugs."
+  ],
+  "only_bug_1_fixed_pass_rate": "7/12 = 0.583 (verified by hand-fixing only `firstShown = i == 0` -> `firstShown = parts.Count == 0` and running the 12 hidden cases).",
+  "expected_failure_summary": "Hidden: accepted 12/12 = 1.000. Broken passes the 3 controls (d10, d11, d12) and fails the 9 bug cases (d1-d9) -> 3/12 = 0.250, well below the 0.9 gate. Visible: the single case (600 -> \"10m 00s\") has a two-digit first unit and a non-first zero seconds, so it is unaffected by all three bugs and passes in broken (symptom-only visible suite).",
+  "no_pristine_gold": "The feature is newly added by defect.patch, so there is no pristine gold tree; validate with --skip-gold."
+}

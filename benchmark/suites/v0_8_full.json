@@ -1,0 +1,30 @@
+{
+  "suite_id": "v0_8_full",
+  "description": "V0.8 (unofficial, in progress): the full PHP payment-portal (paygate-php-portal) + Rust/TypeScript desktop (vaultdesk-tauri) set. 10 atomic hard tasks (bugfix/contract) from v0_8_php_tauri, plus 4 repo-reorganization tasks and 8 staged-implementation manifests (4 groups) from v0_8_reorg_staged. Reorg + atomic tasks run through run-suite; staged GROUPS must be run through `tokenbench run-staged --stage-group <id>` so Stage 2 executes on Stage 1's candidate and extension-friction telemetry is produced. Not an official leaderboard suite until Opus-baselined.",
+  "tasks": [
+    "benchmark/manifests/paygate-php-portal/paygate_report_reconcile_001.json",
+    "benchmark/manifests/paygate-php-portal/paygate_webhook_replay_001.json",
+    "benchmark/manifests/paygate-php-portal/paygate_refund_consistency_001.json",
+    "benchmark/manifests/paygate-php-portal/paygate_provider_payload_001.json",
+    "benchmark/manifests/paygate-php-portal/paygate_checkout_retry_001.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_search_shape_001.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_path_safety_001.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_settings_migrate_001.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_index_freshness_001.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_save_conflict_001.json",
+    "benchmark/manifests/paygate-php-portal/paygate_provider_reorg_001.json",
+    "benchmark/manifests/paygate-php-portal/paygate_service_reorg_001.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_backend_reorg_001.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_frontend_reorg_001.json",
+    "benchmark/manifests/paygate-php-portal/paygate_adjustments_stage_1.json",
+    "benchmark/manifests/paygate-php-portal/paygate_adjustments_stage_2.json",
+    "benchmark/manifests/paygate-php-portal/paygate_recurring_stage_1.json",
+    "benchmark/manifests/paygate-php-portal/paygate_recurring_stage_2.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_tags_stage_1.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_tags_stage_2.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_revision_stage_1.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_revision_stage_2.json"
+  ],
+  "required_trials": 1,
+  "official": false
+}

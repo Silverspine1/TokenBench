@@ -1,0 +1,56 @@
+{
+  "task_id": "marketlab_walkforward_stage_1",
+  "repo_id": "marketlab-ml",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "medium",
+  "stage": 1,
+  "stage_group_id": "marketlab_walkforward",
+  "next_stage_task_id": "marketlab_walkforward_stage_2",
+  "prompt": "When an analyst evaluates a strategy over time, they want to see how it held up across successive periods rather than a single blended number. Today the toolkit can score a return series but it can't hand back a structured period-by-period walk-forward view that lists each window and then summarizes them together. Add a new, separate report for this.\n\nExpose a function importable from the package top level as `walk_forward_report(returns, train_size, test_size)` that returns a dict with two keys: `rows` (one entry per evaluation window, each entry carrying `test_start`, `test_end`, `mean_return`, `win_rate`, and `max_drawdown`) and `summary` (with `num_windows`, `mean_return` = mean of the window returns, `win_rate` = mean of the window win rates, and `max_drawdown` = the worst window drawdown). This is a distinct new entry point from any existing single-number evaluation. A series too short for any window must return an empty `rows` list and a zeroed `summary`, not raise.",
+  "issue_title": "Analysts can't get a period-by-period walk-forward evaluation report",
+  "issue_body": "When an analyst evaluates a strategy over time, they want to see how it held up across successive periods rather than a single blended number. Today the toolkit can score a return series but it can't hand back a structured period-by-period walk-forward view that lists each window and then summarizes them together. Add a new, separate report for this.\n\nExpose a function importable from the package top level as `walk_forward_report(returns, train_size, test_size)` that returns a dict with two keys: `rows` (one entry per evaluation window, each entry carrying `test_start`, `test_end`, `mean_return`, `win_rate`, and `max_drawdown`) and `summary` (with `num_windows`, `mean_return` = mean of the window returns, `win_rate` = mean of the window win rates, and `max_drawdown` = the worst window drawdown). This is a distinct new entry point from any existing single-number evaluation. A series too short for any window must return an empty `rows` list and a zeroed `summary`, not raise.",
+  "expected_behavior": [
+    "`walk_forward_report(returns, train_size, test_size)` is importable from the package top level and returns a dict with `rows` and `summary`.",
+    "`rows` has one entry per evaluation window, each with `test_start`, `test_end`, `mean_return`, `win_rate`, and `max_drawdown`.",
+    "`summary` reports `num_windows`, the mean window `mean_return`, the mean window `win_rate`, and the worst window `max_drawdown`.",
+    "A series too short for any window yields an empty `rows` list and a zeroed `summary` rather than an error.",
+    "Existing evaluation and backtest behavior is unchanged."
+  ],
+  "broken_snapshot": "benchmark/repos/marketlab-ml/broken/marketlab_walkforward_stage_1",
+  "gold_snapshot": "benchmark/repos/marketlab-ml/staged/marketlab_walkforward_stage_1_gold",
+  "visible_commands": [
+    "pytest -q tests_visible"
+  ],
+  "hidden_commands": [
+    "pytest -q benchmark/tests/marketlab-ml/marketlab_walkforward_stage_1/hidden"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "marketlab/**",
+    "configs/**",
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/logs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The package has no walk-forward report: there is no function that returns per-window rows plus an aggregate summary over the windows.",
+  "skills_tested": [
+    "feature implementation",
+    "windowed aggregation",
+    "extensible report modelling"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 4,
+  "task_author_notes": "Stage 1 of the marketlab_walkforward group. Reference adds marketlab/walkforward_report.py with walk_forward_report (per-window rows + summary) reusing the existing walk_forward_eval, exported via __init__.py. A clean, general single-series report builder (build_window_rows + summarize_rows that operate on one series) makes Stage 2 (per-symbol grouping) a thin loop; a hardcoded single-series path forces a rewrite, measured as extension friction."
+}

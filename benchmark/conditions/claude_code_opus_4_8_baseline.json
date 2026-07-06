@@ -1,0 +1,9 @@
+{
+  "condition_id": "claude_code_opus_4_8_baseline",
+  "agent": "claude-code",
+  "model": "claude-opus-4-8",
+  "tools": [],
+  "description": "Claude Code Opus 4.8 baseline using isolated atomic runs.",
+  "cost_basis": "provider_reported",
+  "official": false
+}

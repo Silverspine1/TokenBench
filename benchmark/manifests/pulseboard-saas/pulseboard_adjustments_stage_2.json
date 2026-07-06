@@ -1,0 +1,52 @@
+{
+  "task_id": "pulseboard_adjustments_stage_2",
+  "repo_id": "pulseboard-saas",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "medium",
+  "stage": 2,
+  "stage_group_id": "pulseboard_adjustments",
+  "previous_stage_task_id": "pulseboard_adjustments_stage_1",
+  "input_source": "previous_candidate",
+  "prompt": "When the business refunds money to a customer, that refund needs to be reflected in the same invoice balances and summaries that already account for manual adjustments. Today a refund leaves the reported balance looking as though the customer still paid in full, so the outstanding amount is understated. Fold refunds into the reported balances and the per-status summary, keeping the existing summary fields and the current behavior for invoices without refunds.",
+  "issue_title": "Refunds aren't reflected in customer balances",
+  "issue_body": "When the business refunds money to a customer, that refund needs to be reflected in the same invoice balances and summaries that already account for manual adjustments. Today a refund leaves the reported balance looking as though the customer still paid in full, so the outstanding amount is understated. Fold refunds into the reported balances and the per-status summary, keeping the existing summary fields and the current behavior for invoices without refunds.",
+  "expected_behavior": [
+    "A refund lowers the net amount treated as paid, so the customer's outstanding balance goes back up accordingly.",
+    "Refunds appear in the per-status summary alongside the existing amounts.",
+    "Invoices without refunds behave exactly as before, and the existing summary field names are unchanged.",
+    "Manual adjustments continue to behave as they did."
+  ],
+  "broken_snapshot": "benchmark/repos/pulseboard-saas/broken/pulseboard_adjustments_stage_2",
+  "gold_snapshot": "benchmark/repos/pulseboard-saas/staged/pulseboard_adjustments_stage_2_gold",
+  "visible_commands": [
+    "node tests_visible/run_visible_tests.js"
+  ],
+  "hidden_commands": [
+    "node --test --test-reporter=tap benchmark/tests/pulseboard-saas/pulseboard_adjustments_stage_2/hidden/test_hidden_refunds.js"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**"
+  ],
+  "ignored_paths": [
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Totals and the summary ignore a refunds component, so a refunded payment is still counted as fully paid and outstanding is understated.",
+  "skills_tested": [
+    "feature extension",
+    "money arithmetic in cents",
+    "reusing an existing abstraction"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 5,
+  "task_author_notes": "Stage 2 of the pulseboard_adjustments group. Runs on the agent's Stage 1 candidate. Reference adds a `refunds` component (schema.js) and folds it via netPaid = paid - refunds into computeTotals (totals.js) and the summary buckets (summary.js). Extension friction is high when Stage 1 hardcoded adjustments rather than modelling a general signed component."
+}

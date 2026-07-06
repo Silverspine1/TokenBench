@@ -1,0 +1,53 @@
+{
+  "task_id": "vaultdesk_path_safety_001",
+  "repo_id": "vaultdesk-tauri",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "Files inside the selected vault should be accessible, while requests that point outside the vault must be rejected. Today the handling of unusual paths is inconsistent. Make resolution correct and consistent for both Windows-style and POSIX-style separators.",
+  "issue_title": "Vault path handling is inconsistent for unusual paths",
+  "issue_body": "Files inside the selected vault should be accessible, while requests that point outside the vault must be rejected. Today the handling of unusual paths is inconsistent. Make resolution correct and consistent for both Windows-style and POSIX-style separators.",
+  "expected_behavior": [
+    "Valid nested files inside the vault resolve normally.",
+    "Paths that point outside the vault are rejected.",
+    "Resolution is stable for Windows-style and POSIX-style separators.",
+    "The rejection error keeps its normalised shape for the frontend."
+  ],
+  "broken_snapshot": "benchmark/repos/vaultdesk-tauri/broken/vaultdesk_path_safety_001",
+  "gold_snapshot": "benchmark/repos/vaultdesk-tauri/gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py"
+  ],
+  "hidden_commands": [
+    "python -m pytest benchmark/tests/vaultdesk-tauri/vaultdesk_path_safety_001/hidden/test_hidden.py -q"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "src-tauri/src/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**",
+    "src-tauri/tests/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Three coupled defects in safe_path.rs: a `..` segment that climbs above the root is silently swallowed instead of rejected; containment is decided by a raw string-prefix check on the joined paths rather than segment by segment; and normalize_segments splits only on '/', so Windows-style backslash separators are never segmented. Together these accept traversals that re-enter the root prefix, accept sibling directories whose names merely share a string prefix (for example /vault/data-evil against root /vault/data), and resolve backslash-separated requests to a different path than their forward-slash equivalent.",
+  "skills_tested": [
+    "path traversal containment",
+    "segment-wise prefix checking",
+    "separator normalization"
+  ],
+  "root_cause_files": [
+    "src-tauri/src/fs/safe_path.rs"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 2,
+  "task_author_notes": "Restore the `..` underflow to return a path-escape error; replace the raw string-prefix containment with the segment-by-segment comparison so /vault/data-evil is rejected against /vault/data while genuine nested files are accepted; and split normalize_segments on both '/' and '\\' so backslash-separated requests resolve to the same forward-slash path as their POSIX equivalent."
+}

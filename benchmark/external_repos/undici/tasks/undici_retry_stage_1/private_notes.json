@@ -1,0 +1,6 @@
+{
+  "root_cause_files": [],
+  "injection_strategy": "No defect injection. This is a greenfield implementation task. The model must design and implement AutoRetryHandler from scratch.",
+  "expected_failure_summary": "No file to break. The model must create lib/handler/auto-retry-handler.js, wire it into index.js as module.exports.AutoRetryHandler, and ensure client.dispatch() can be called recursively from within the handler.",
+  "calibration_notes": "Hard: requires understanding of undici dispatch handler protocol (onRequestStart, onResponseStart, onResponseData, onResponseEnd, onResponseError), recursive re-dispatch on retryable status codes, and clean export wiring. Stage 1 acceptance rate expected ~40-60% for strong models."
+}

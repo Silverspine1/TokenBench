@@ -1,0 +1,47 @@
+{
+  "task_id": "logforge_csv_quoting_001",
+  "repo_id": "logforge-cpp",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "Users report that some rows of their CSV files come out garbled. When a value is wrapped in quotes so that it can hold a comma, the tool tears it into pieces at that comma instead of keeping it whole, and quoted values that contain an escaped quotation mark show up with stray extra quote marks in them. Plain values and empty values look fine; the trouble is with quoted values.\n\nFor example, a name field written as the quoted value \"Smith, John\" should stay a single field but currently breaks apart.\n\nThe parser is expected to honour the usual quoting convention end to end:\n- A quoted value is delimited by the quotes that surround it, and the data inside those quotes (including any separators) belongs to that one value; an escaped quotation mark inside it reads as a single quotation mark in the result.\n- The quoting convention only applies to a value that is actually presented as quoted; text that merely happens to contain a quotation mark is ordinary data and must be left exactly as written.\n\nPreserve existing public types/fields and unrelated behavior.",
+  "issue_title": "Some CSV values come out garbled",
+  "issue_body": "Users report that some rows of their CSV files come out garbled. When a value is wrapped in quotes so that it can hold a comma, the tool tears it into pieces at that comma instead of keeping it whole, and quoted values that contain an escaped quotation mark show up with stray extra quote marks in them. Plain values and empty values look fine; the trouble is with quoted values.\n\nFor example, a name field written as the quoted value \"Smith, John\" should stay a single field but currently breaks apart.\n\nThe parser is expected to honour the usual quoting convention end to end:\n- A quoted value is delimited by the quotes that surround it, and the data inside those quotes (including any separators) belongs to that one value; an escaped quotation mark inside it reads as a single quotation mark in the result.\n- The quoting convention only applies to a value that is actually presented as quoted; text that merely happens to contain a quotation mark is ordinary data and must be left exactly as written.\n\nPreserve existing public types/fields and unrelated behavior.",
+  "broken_snapshot": "benchmark/repos/logforge-cpp/broken/logforge_csv_quoting_001",
+  "gold_snapshot": "benchmark/repos/logforge-cpp/gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py"
+  ],
+  "hidden_commands": [
+    "python benchmark/tests/logforge-cpp/logforge_csv_quoting_001/hidden/run_hidden.py"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "include/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The record splitter breaks the line on every comma without honoring quoted fields, and the field decoder strips surrounding quotes but does not collapse doubled quotes, so quoted commas split fields and escaped quotes survive in the output.",
+  "skills_tested": [
+    "CSV quoting semantics",
+    "stateful scanning",
+    "string decoding"
+  ],
+  "root_cause_files": [
+    "src/csv.cpp",
+    "src/field.cpp"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "Both files must change. The splitter must track whether it is inside a double-quoted field so quoted commas do not split, and the decoder must collapse doubled quotes to one. Fixing only the splitter leaves escaped quotes uncollapsed; fixing only the decoder leaves quoted commas splitting the field."
+}

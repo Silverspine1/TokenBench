@@ -1,0 +1,62 @@
+{
+  "task_id": "vaultdesk_revision_stage_2",
+  "repo_id": "vaultdesk-tauri",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "medium",
+  "stage": 2,
+  "stage_group_id": "vaultdesk_revision_conflicts",
+  "previous_stage_task_id": "vaultdesk_revision_stage_1",
+  "input_source": "previous_candidate",
+  "prompt": "Revision history should protect users from save conflicts. When the same note is edited from two windows, a stale save must not silently overwrite newer content. Use the note's revision history to detect this. Implement, with these exact Rust signatures and module paths (crate name `vaultdesk`): in module `vaultdesk::commands::notes`, `pub fn save_note_with_revision(store: &mut RevisionStore, payload: SaveNotePayload) -> <result>` and a `pub struct SaveNotePayload` with public fields `path: String`, `content: String`, `expected_revision: u64`, and `overwrite: bool`. The returned result must expose public fields `ok: bool`, `conflict: bool`, `revision: u64` (the new revision id on an accepted save), and `current_revision: u64` (the note's actual current revision). A save whose `expected_revision` does not equal the note's current revision id must be rejected as a conflict (`ok` false, `conflict` true) and must not record anything, leaving the stored content and current revision unchanged, unless `overwrite` is true. An accepted save records a new revision (via the Stage 1 RevisionStore) and returns its new `revision`. A rejected save must set `current_revision` to the note's actual current revision so the client can re-sync. The existing Stage 1 revision-history functions, struct, paths and signatures (`vaultdesk::commands::revisions::{save_note_revision, list_note_revisions, get_note_revision}`, `vaultdesk::fs::revision_store::RevisionStore`) must keep working unchanged.",
+  "issue_title": "Revision history should protect users from save conflicts.",
+  "issue_body": "Revision history should protect users from save conflicts. When the same note is edited from two windows, a stale save must not silently overwrite newer content. Use the note's revision history to detect this. Implement, with these exact Rust signatures and module paths (crate name `vaultdesk`): in module `vaultdesk::commands::notes`, `pub fn save_note_with_revision(store: &mut RevisionStore, payload: SaveNotePayload) -> <result>` and a `pub struct SaveNotePayload` with public fields `path: String`, `content: String`, `expected_revision: u64`, and `overwrite: bool`. The returned result must expose public fields `ok: bool`, `conflict: bool`, `revision: u64` (the new revision id on an accepted save), and `current_revision: u64` (the note's actual current revision). A save whose `expected_revision` does not equal the note's current revision id must be rejected as a conflict (`ok` false, `conflict` true) and must not record anything, leaving the stored content and current revision unchanged, unless `overwrite` is true. An accepted save records a new revision (via the Stage 1 RevisionStore) and returns its new `revision`. A rejected save must set `current_revision` to the note's actual current revision so the client can re-sync. The existing Stage 1 revision-history functions, struct, paths and signatures (`vaultdesk::commands::revisions::{save_note_revision, list_note_revisions, get_note_revision}`, `vaultdesk::fs::revision_store::RevisionStore`) must keep working unchanged.",
+  "expected_behavior": [
+    "A save whose expectedRevision equals the note's current revision is accepted and records a new revision.",
+    "A stale save with overwrite false is rejected as a conflict and records nothing.",
+    "A stale save with overwrite true is accepted and records a new revision.",
+    "A rejected save reports the note's actual current revision and leaves the stored content unchanged.",
+    "The Stage 1 revision-history functions continue to behave exactly as before."
+  ],
+  "broken_snapshot": "benchmark/repos/vaultdesk-tauri/broken/vaultdesk_revision_stage_2",
+  "gold_snapshot": "benchmark/repos/vaultdesk-tauri/staged/vaultdesk_revision_stage_2_gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py",
+    "python tests_visible/run_revision_stress.py"
+  ],
+  "hidden_commands": [
+    "python -m pytest benchmark/tests/vaultdesk-tauri/vaultdesk_revision_stage_2/hidden/test_hidden.py -q"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "output_stress": {
+    "enabled": true,
+    "expected_visible_output_bytes_min": 50000,
+    "expected_visible_output_bytes_max": 300000
+  },
+  "scored_paths": [
+    "src/**",
+    "src-tauri/src/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**",
+    "src-tauri/tests/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "save_note_with_revision records every save unconditionally and never inspects expectedRevision, so a stale save from a second window always overwrites the newer content, never reports a conflict, and never returns the note's actual current revision.",
+  "skills_tested": [
+    "optimistic concurrency",
+    "conflict detection contract",
+    "reusing an existing abstraction"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "Stage 2 of the vaultdesk_revision_conflicts group. Runs on the agent's Stage 1 candidate (revision history). Reference adds conflict detection to save_note_with_revision (commands/notes.rs) on top of the Stage 1 RevisionStore: reject when expectedRevision != current_revision_id and overwrite is false (record nothing, report current id), otherwise record a new revision. Extension friction is high when Stage 1 modelled history as an append-only opaque blob with no addressable current revision; low when Stage 1 exposed a current revision id. Stage 2 is the designated long-output task: tests_visible/run_revision_stress.py emits a deterministic 50-300 KB save/conflict simulation."
+}

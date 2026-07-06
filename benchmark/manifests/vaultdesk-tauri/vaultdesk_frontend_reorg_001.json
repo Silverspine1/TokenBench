@@ -1,0 +1,80 @@
+{
+  "task_id": "vaultdesk_frontend_reorg_001",
+  "repo_id": "vaultdesk-tauri",
+  "mode": "atomic",
+  "category": "reorg",
+  "difficulty": "medium",
+  "prompt": "A previous editor migration left the desktop UI integration code flattened into a few unclear catch-all files (for example src/x.ts, src/y.ts, src/state/blob.ts, and src/api/misc.ts), each mixing several unrelated frontend concerns together. The command wrappers and the in-memory state helpers are tangled, and the documented module layout is gone. The UI still works through the stable barrel src/api/commands.ts, but the integration code is painful to maintain.\n\nReorganize the frontend code into clear modules at these canonical paths: src/api/files.ts (file-entry and error normalization), src/api/search.ts (search-result normalization), src/api/settings.ts (settings normalization), src/api/notes.ts (save-result normalization), and the state holders src/state/vaultState.ts, src/state/searchState.ts, and src/state/settingsState.ts. The stable import surface src/api/commands.ts must keep re-exporting the same public symbols, components must keep importing from src/api/* and src/state/*, and all documented UI-facing behavior must not change.",
+  "issue_title": "The desktop UI integration code is difficult to maintain after a migration.",
+  "issue_body": "A previous editor migration left the desktop UI integration code flattened into a few unclear catch-all files (for example src/x.ts, src/y.ts, src/state/blob.ts, and src/api/misc.ts), each mixing several unrelated frontend concerns together. The command wrappers and the in-memory state helpers are tangled, and the documented module layout is gone. The UI still works through the stable barrel src/api/commands.ts, but the integration code is painful to maintain.\n\nReorganize the frontend code into clear modules at these canonical paths: src/api/files.ts (file-entry and error normalization), src/api/search.ts (search-result normalization), src/api/settings.ts (settings normalization), src/api/notes.ts (save-result normalization), and the state holders src/state/vaultState.ts, src/state/searchState.ts, and src/state/settingsState.ts. The stable import surface src/api/commands.ts must keep re-exporting the same public symbols, components must keep importing from src/api/* and src/state/*, and all documented UI-facing behavior must not change.",
+  "expected_behavior": [
+    "API normalizers live at the canonical module paths src/api/{files,search,settings,notes}.ts.",
+    "State holders live at the canonical module paths src/state/{vaultState,searchState,settingsState}.ts.",
+    "src/api/commands.ts remains the stable barrel re-exporting the same public symbols, and components import from src/api/* and src/state/*.",
+    "Search-result, settings, save-result, and file-entry normalization and the state holders behave exactly as before.",
+    "The flattened catch-all files (src/x.ts, src/y.ts, src/state/blob.ts, src/api/misc.ts) are gone."
+  ],
+  "broken_snapshot": "benchmark/repos/vaultdesk-tauri/broken/vaultdesk_frontend_reorg_001",
+  "gold_snapshot": "benchmark/repos/vaultdesk-tauri/gold",
+  "visible_commands": [
+    "python tests_visible/run_reorg_smoke.py",
+    "python tests_visible/run_output_stress.py"
+  ],
+  "output_stress": {
+    "enabled": true,
+    "expected_visible_output_bytes_min": 50000,
+    "expected_visible_output_bytes_max": 300000
+  },
+  "hidden_commands": [
+    "python -m pytest benchmark/tests/vaultdesk-tauri/vaultdesk_frontend_reorg_001/hidden/test_hidden.py -q"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**",
+    "src-tauri/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "structure_contract": {
+    "required_paths": [
+      "src/api/files.ts",
+      "src/api/search.ts",
+      "src/api/settings.ts",
+      "src/api/notes.ts",
+      "src/state/vaultState.ts",
+      "src/state/searchState.ts",
+      "src/state/settingsState.ts"
+    ],
+    "forbidden_paths": [
+      "src/x.ts",
+      "src/y.ts",
+      "src/state/blob.ts",
+      "src/api/misc.ts"
+    ],
+    "compatibility_imports": [
+      "src/api/commands.ts"
+    ],
+    "public_entrypoints": [
+      "src/api/commands.ts"
+    ]
+  },
+  "expected_failure_summary": "The frontend API normalizers and state holders are flattened into opaque catch-all files (src/x.ts, src/y.ts, src/state/blob.ts, src/api/misc.ts) and the canonical modules src/api/{files,search,settings,notes}.ts and src/state/{vaultState,searchState,settingsState}.ts no longer exist, so the documented module surface cannot be imported or maintained at its canonical paths even though behaviour still works through the barrel.",
+  "skills_tested": [
+    "module decomposition",
+    "import surface rewiring",
+    "behavior preservation"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 7,
+  "expected_changed_files_max": 18,
+  "task_author_notes": "Reorg. Broken flattens the four App api normalizers into src/api/misc.ts + src/x.ts + src/y.ts and the three state holders into src/state/blob.ts, with src/api/commands.ts (and components / noteState) repointed to those bin files since the documented modules were emptied out. Restoring the seven canonical modules (gold already has them) and removing the bin files satisfies the structure contract and the hidden behaviour checks, which gate each behaviour on the corresponding canonical file existing (graceful partial credit via independent dynamic imports). Long-output candidate: run_output_stress.py emits ~156 KB. Node v24 imports the .ts modules directly via type stripping."
+}

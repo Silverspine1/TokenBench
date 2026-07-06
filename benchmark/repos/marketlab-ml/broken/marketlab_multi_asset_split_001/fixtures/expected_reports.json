@@ -1,0 +1,16 @@
+{
+  "default_config_sample": {
+    "trades": [
+      {"symbol": "AAA", "notional": 1000.0, "gross_pnl": 25.0},
+      {"symbol": "AAA", "notional": 1000.0, "gross_pnl": -10.0},
+      {"symbol": "BBB", "notional": 2000.0, "gross_pnl": 40.0}
+    ],
+    "rates": {"fee_rate": 0.0005, "slippage_rate": 0.0002, "spread_rate": 0.0001},
+    "expected": {
+      "gross_pnl": 55.0,
+      "cost_breakdown": {"fee": 2.0, "slippage": 0.8, "spread": 0.4, "total": 3.2},
+      "net_pnl": 51.8,
+      "equity_delta": 51.8
+    }
+  }
+}

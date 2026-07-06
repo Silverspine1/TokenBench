@@ -1,0 +1,54 @@
+{
+  "task_id": "logforge_dialect_stage_1",
+  "repo_id": "logforge-cpp",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "medium",
+  "stage": 1,
+  "stage_group_id": "logforge_dialect",
+  "next_stage_task_id": "logforge_dialect_stage_2",
+  "prompt": "Customers keep telling us the tool mangles their data files. Many of their exports do not separate the columns with commas - some use a semicolon between columns instead - and when they run those files through the tool every row ends up as a single column, so the numbers can't be read and the summary is wrong. The files are otherwise well-formed: a column whose text contains the separator is wrapped in quotes exactly the way it is today, and quotes inside such a column are still doubled.\n\nLet a caller say which separator their file uses, and read the file correctly under that choice - a column wrapped in quotes must still be kept whole even when it contains the separator, and the existing behavior for ordinary comma files must be completely unchanged for callers who don't ask for anything different.\n\nProvide this API, declared under include/logforge/ in the logforge namespace: a struct Dialect { char delimiter; char quote; }; Dialect defaultDialect() (comma delimiter, double-quote); Dialect dialectByName(const std::string& name) mapping \"csv\" to a comma dialect and \"ssv\" to a semicolon dialect; and std::vector<std::string> parseLineWith(const std::string& line, const Dialect& d) which splits a line on the dialect's delimiter while keeping a quoted column whole and unescaping doubled quotes. The existing parseLine(line) must stay comma-based and unchanged.",
+  "issue_title": "The tool can't read files that don't use commas between columns",
+  "issue_body": "Customers keep telling us the tool mangles their data files. Many of their exports do not separate the columns with commas - some use a semicolon between columns instead - and when they run those files through the tool every row ends up as a single column, so the numbers can't be read and the summary is wrong. The files are otherwise well-formed: a column whose text contains the separator is wrapped in quotes exactly the way it is today, and quotes inside such a column are still doubled.\n\nLet a caller say which separator their file uses, and read the file correctly under that choice - a column wrapped in quotes must still be kept whole even when it contains the separator, and the existing behavior for ordinary comma files must be completely unchanged for callers who don't ask for anything different.\n\nProvide this API, declared under include/logforge/ in the logforge namespace: a struct Dialect { char delimiter; char quote; }; Dialect defaultDialect() (comma delimiter, double-quote); Dialect dialectByName(const std::string& name) mapping \"csv\" to a comma dialect and \"ssv\" to a semicolon dialect; and std::vector<std::string> parseLineWith(const std::string& line, const Dialect& d) which splits a line on the dialect's delimiter while keeping a quoted column whole and unescaping doubled quotes. The existing parseLine(line) must stay comma-based and unchanged.",
+  "expected_behavior": [
+    "A caller can choose the separator their file uses, and a file using that separator is read into the correct columns.",
+    "A column wrapped in quotes is kept whole even when it contains the chosen separator, and doubled quotes inside it still decode to a single quote.",
+    "Files that use the ordinary comma separator are read exactly as before for callers who do not ask for anything different.",
+    "Expose logforge::Dialect{delimiter,quote}, defaultDialect(), dialectByName(\"csv\"|\"ssv\"), and parseLineWith(line, dialect); leave parseLine() comma-based."
+  ],
+  "broken_snapshot": "benchmark/repos/logforge-cpp/broken/logforge_dialect_stage_1",
+  "gold_snapshot": "benchmark/repos/logforge-cpp/staged/logforge_dialect_stage_1_gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py"
+  ],
+  "hidden_commands": [
+    "python benchmark/tests/logforge-cpp/logforge_dialect_stage_1/hidden/run_hidden.py"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "include/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The parser hard-codes the comma separator, so a file that separates columns with another character is read as a single column and its numeric column cannot be summarised.",
+  "skills_tested": [
+    "parameterising over input shape",
+    "behavior preservation",
+    "extensible abstraction design"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 6,
+  "task_author_notes": "Stage 1 of the logforge_dialect group. Reference introduces a Dialect value (delimiter + quote) in include/logforge/dialect.hpp, parameterises the splitter/decoder over it (splitRecordWith/parseLineWith in csv.cpp, decodeFieldWith in field.cpp), and keeps the comma entry points (splitRecord/parseLine, decodeField) as thin default-dialect wrappers so existing behaviour is unchanged. A clean Dialect abstraction makes Stage 2 (incremental processing that reuses the same shape) a cheap extension: streamSummary just calls parseLineWith with the same Dialect. A hardcoded comma/semicolon branch instead of a general Dialect forces a rewrite in Stage 2 (measured as extension friction)."
+}

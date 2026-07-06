@@ -1,0 +1,40 @@
+{
+  "task_id": "paygate_adjustments_stage_2",
+  "repo_id": "paygate-php-portal",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "medium",
+  "stage": 2,
+  "stage_group_id": "paygate_adjustments",
+  "previous_stage_task_id": "paygate_adjustments_stage_1",
+  "input_source": "previous_candidate",
+  "prompt": "Refunds must be reflected in the same finance summaries that already account for manual adjustments. Today a refund leaves the summary looking as though the customer still paid in full, so the amount due is understated. Fold refunds into the invoice summary so a refund lowers the net amount treated as paid and raises the amount due accordingly. Do NOT change the public summary fields added in the previous change: each row must still expose exactly orderId, grossCents, adjustmentsCents, paidCents and dueCents, with paidCents now meaning the net amount paid (payments minus refunds), and grossCents + adjustmentsCents - paidCents still reconciling to dueCents. The existing manual-adjustment behavior must continue to pass, and invoices without refunds must behave exactly as before. Refunds are recorded through the existing Container service `refundService` via its method `refund($paymentId, $amountCents)`; reflect those recorded refunds in `App\\Services\\InvoiceService::summary()`. The adjustment entry points from the previous change (`adjustmentService->add($orderId, $amountCents, $reason)` and `adjustmentsRepo->findByOrder($orderId)`) and the `summary()` field set remain unchanged.",
+  "issue_title": "Refunds need to appear in the same finance summaries as adjustments.",
+  "issue_body": "Refunds must be reflected in the same finance summaries that already account for manual adjustments. Today a refund leaves the summary looking as though the customer still paid in full, so the amount due is understated. Fold refunds into the invoice summary so a refund lowers the net amount treated as paid and raises the amount due accordingly. Do NOT change the public summary fields added in the previous change: each row must still expose exactly orderId, grossCents, adjustmentsCents, paidCents and dueCents, with paidCents now meaning the net amount paid (payments minus refunds), and grossCents + adjustmentsCents - paidCents still reconciling to dueCents. The existing manual-adjustment behavior must continue to pass, and invoices without refunds must behave exactly as before. Refunds are recorded through the existing Container service `refundService` via its method `refund($paymentId, $amountCents)`; reflect those recorded refunds in `App\\Services\\InvoiceService::summary()`. The adjustment entry points from the previous change (`adjustmentService->add($orderId, $amountCents, $reason)` and `adjustmentsRepo->findByOrder($orderId)`) and the `summary()` field set remain unchanged.",
+  "expected_behavior": [
+    "A refund lowers the net amount treated as paid, so the customer's outstanding balance rises accordingly.",
+    "Partial and full refunds adjust paidCents and dueCents exactly, alongside any manual adjustments.",
+    "The public summary fields are unchanged: each row exposes exactly orderId, grossCents, adjustmentsCents, paidCents, dueCents.",
+    "Manual adjustments continue to behave as they did, and invoices without refunds are unchanged."
+  ],
+  "broken_snapshot": "benchmark/repos/paygate-php-portal/broken/paygate_adjustments_stage_2",
+  "gold_snapshot": "benchmark/repos/paygate-php-portal/staged/paygate_adjustments_stage_2_gold",
+  "visible_commands": ["python tests_visible/run_visible.py"],
+  "hidden_commands": ["python -m pytest benchmark/tests/paygate-php-portal/paygate_adjustments_stage_2/hidden/test_hidden.py -q"],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": ["app/**", "public/**"],
+  "ignored_paths": ["docs/**", "fixtures/**"],
+  "forbidden_paths": ["benchmark/**", "tests/**", ".tokenbench/**"],
+  "expected_failure_summary": "The summary computes paidCents from gross payments only and ignores refunds, so a refunded payment is still counted as fully paid and the amount due is understated whenever a refund exists.",
+  "skills_tested": [
+    "feature extension",
+    "money arithmetic in cents",
+    "reusing an existing abstraction"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 4,
+  "task_author_notes": "Stage 2 of the paygate_adjustments group. Runs on the agent's Stage 1 candidate. Reference folds refunds into InvoiceService::summary() by making net paid a signed-component sum (payments minus refundedCents), keeping the same public fields. Extension friction is high when Stage 1 hardcoded the summary arithmetic instead of modelling a general signed component."
+}

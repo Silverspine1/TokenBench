@@ -1,0 +1,47 @@
+{
+  "task_id": "marketlab_walkforward_eval_001",
+  "repo_id": "marketlab-ml",
+  "mode": "atomic",
+  "category": "implementation",
+  "difficulty": "hard",
+  "prompt": "Walk-forward evaluation is producing overlapping windows and an incorrect win-rate aggregate, so rows are scored in more than one window and the summary is wrong. Make the evaluation walk forward over sequential, non-overlapping windows: each window trains on a block of rows and evaluates on the immediately following block, with no row scored twice. Report per-window mean return, max drawdown, and win rate, and aggregate them into a mean window return, a worst-case (maximum) window drawdown, and a mean window win rate. Existing backtest metric names and behavior must not change.",
+  "broken_snapshot": "benchmark/repos/marketlab-ml/broken/marketlab_walkforward_eval_001",
+  "gold_snapshot": "benchmark/repos/marketlab-ml/gold",
+  "visible_commands": [
+    "pytest -q tests_visible"
+  ],
+  "hidden_commands": [
+    "pytest -q benchmark/tests/marketlab-ml/marketlab_walkforward_eval_001/hidden"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "marketlab/**",
+    "configs/**",
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/logs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Window step defaults to 1 (overlapping windows) and win rate counts non-negative returns as wins, so window boundaries and aggregates are wrong.",
+  "skills_tested": [
+    "windowing correctness",
+    "no-overlap invariant",
+    "metric definitions"
+  ],
+  "root_cause_files": [
+    "marketlab/evaluation.py",
+    "marketlab/metrics.py"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "Default step must equal test_size (non-overlapping). win_rate must count strictly positive returns. Existing net_pnl/compute_metrics must be untouched."
+}

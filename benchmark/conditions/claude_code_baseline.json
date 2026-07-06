@@ -1,0 +1,9 @@
+{
+  "condition_id": "claude_code_baseline",
+  "agent": "claude-code",
+  "model": "opus-4.8",
+  "tools": [],
+  "description": "Claude Code baseline with no repo map or output compression.",
+  "cost_basis": "provider_reported",
+  "official": false
+}

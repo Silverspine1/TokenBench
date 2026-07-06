@@ -1,0 +1,32 @@
+{
+  "task_id": "paygate_report_reconcile_001",
+  "repo_id": "paygate-php-portal",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "Finance has seen completed orders where the payment list, invoice status, and order balance do not agree. Fix the reporting behaviour so the figures reconcile, while preserving the existing admin response fields.",
+  "issue_title": "Admin payment reports disagree with invoice balances",
+  "issue_body": "Finance has seen completed orders where the payment list, invoice status, and order balance do not agree. Fix the reporting behaviour so the figures reconcile, while preserving the existing admin response fields.",
+  "expected_behavior": [
+    "Existing checkout and admin report entrypoints keep working.",
+    "Paid, due, and invoice balance values reconcile exactly in cents.",
+    "Amounts that are only part-paid stay reflected as outstanding.",
+    "Currency is unchanged."
+  ],
+  "broken_snapshot": "benchmark/repos/paygate-php-portal/broken/paygate_report_reconcile_001",
+  "gold_snapshot": "benchmark/repos/paygate-php-portal/gold",
+  "visible_commands": ["python tests_visible/run_visible.py"],
+  "hidden_commands": ["python -m pytest benchmark/tests/paygate-php-portal/paygate_report_reconcile_001/hidden/test_hidden.py -q"],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": ["app/**", "public/**"],
+  "ignored_paths": ["docs/**", "fixtures/**"],
+  "forbidden_paths": ["benchmark/**", "tests/**", ".tokenbench/**"],
+  "expected_failure_summary": "Report and invoice recompute use a float decimal display path for cent arithmetic, so odd-cent amounts truncate a cent and paid+due no longer equals total; round amounts are unaffected.",
+  "skills_tested": ["integer cents arithmetic", "float rounding hazards", "reconciliation invariants"],
+  "root_cause_files": ["app/Services/PaymentReportService.php", "app/Services/InvoiceService.php"],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "PaymentReportService::report computes dueCents via a float (total/100 - net/100)*100 path; InvoiceService::recompute accumulates per-payment paidCents via Money::toDecimalString -> floatval -> *100 truncation. Both must return to exact integer-cent arithmetic. reconcile_round_amounts and currency_unchanged pass on broken; reconcile_odd_cents and admin_paid_plus_due_equals_total fail."
+}

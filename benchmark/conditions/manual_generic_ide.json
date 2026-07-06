@@ -1,0 +1,9 @@
+{
+  "condition_id": "manual_generic_ide",
+  "agent": "manual-ide",
+  "model": "user-entered",
+  "tools": ["external-ide"],
+  "description": "Manual IDE benchmark run through the TokenBench UI (generic IDE/ADE).",
+  "cost_basis": "manual_provider_entry",
+  "official": false
+}

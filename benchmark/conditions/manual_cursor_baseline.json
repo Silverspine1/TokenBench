@@ -1,0 +1,9 @@
+{
+  "condition_id": "manual_cursor_baseline",
+  "agent": "manual-ide",
+  "model": "user-entered",
+  "tools": ["external-ide", "cursor"],
+  "description": "Manual IDE benchmark run through the TokenBench UI (Cursor).",
+  "cost_basis": "manual_provider_entry",
+  "official": false
+}

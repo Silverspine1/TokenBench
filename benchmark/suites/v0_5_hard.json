@@ -1,0 +1,18 @@
+{
+  "suite_id": "v0_5_hard",
+  "description": "Discriminative hard suite: 2 repos x 5 tasks. Multi-file, contract-tracing, invariant-preserving tasks designed so cheap models do not trivially solve them. Difficulty comes from understanding, not ambiguity.",
+  "tasks": [
+    "benchmark/manifests/marketlab-ml/marketlab_cost_contract_001.json",
+    "benchmark/manifests/marketlab-ml/marketlab_multi_asset_split_001.json",
+    "benchmark/manifests/marketlab-ml/marketlab_warmup_alignment_001.json",
+    "benchmark/manifests/marketlab-ml/marketlab_walkforward_eval_001.json",
+    "benchmark/manifests/marketlab-ml/marketlab_report_consistency_001.json",
+    "benchmark/manifests/pulseboard-saas/pulseboard_filter_export_contract_001.json",
+    "benchmark/manifests/pulseboard-saas/pulseboard_datefilter_boundary_001.json",
+    "benchmark/manifests/pulseboard-saas/pulseboard_status_summary_001.json",
+    "benchmark/manifests/pulseboard-saas/pulseboard_api_adapter_001.json",
+    "benchmark/manifests/pulseboard-saas/pulseboard_cache_invalidation_001.json"
+  ],
+  "required_trials": 1,
+  "official": false
+}

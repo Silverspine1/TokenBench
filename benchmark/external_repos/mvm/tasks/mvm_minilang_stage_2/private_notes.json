@@ -1,0 +1,60 @@
+{
+  "task_id": "mvm_minilang_stage_2",
+  "stage": 2,
+  "stage_group_id": "mvm_minilang",
+  "previous_stage_task_id": "mvm_minilang_stage_1",
+  "input_source": "previous_candidate",
+  "summary": "Stage 2 adds a string data type to the stage-1 integer mini-language. Strings must thread through nearly every stage-1 file; this hard-to-bolt-on integration is what defeats weaker models. The accepted_solution.patch is the COMBINED stage1+stage2 reference applied to the pristine repo.",
+  "reference_subsystem_files": [
+    "minilang/token.go",
+    "minilang/errors.go",
+    "minilang/lexer.go",
+    "minilang/ast.go",
+    "minilang/value.go",
+    "minilang/env.go",
+    "minilang/parser.go",
+    "minilang/interp.go",
+    "stdlib/core/tbx.go"
+  ],
+  "stage1_files_touched_by_strings": {
+    "token.go": "added tokStr and tokComma kinds (string literal + builtin-call argument separator hook)",
+    "lexer.go": "added lexString (double-quoted literal with \\\" and \\n escapes) and a ',' case",
+    "ast.go": "added strLit and callExpr nodes",
+    "value.go": "value gains a kind tag (kindInt/kindStr) and a string payload; display() renders strings raw",
+    "parser.go": "parsePrimary handles string literals and builtin calls name'('expr')'",
+    "interp.go": "evalExpr handles strLit and callExpr; evalBinary makes + type-aware (int+int, str+str, mixed=type error) and guards -,*,/ to integers; unary minus rejects strings; evalCall implements len and upper",
+    "env.go": "unchanged in source but now stores typed values (strings flow through the same bindings)",
+    "tbx.go": "unchanged (tbxRun -> minilang.Run signature is identical)"
+  },
+  "string_contract": {
+    "literals": "double quotes; escapes \\\" -> '\"' and \\n -> newline",
+    "plus_overload": "int+int adds; str+str concatenates; mixed int/str -> 'error: <msg>'",
+    "print": "string prints raw content, no quotes",
+    "builtins": "len(s) -> int length; upper(s) -> upper-cased string",
+    "integer_ops": "-, *, /, unary minus remain integer-only; applying them to a string is a type error",
+    "carry_over": "all stage-1 numeric behaviour unchanged"
+  },
+  "hidden_checks": {
+    "total": 22,
+    "carried_numeric": 8,
+    "string": 14,
+    "string_groups": [
+      "literal + print (str_literal, str_print_let)",
+      "concatenation (str_concat, str_concat_var, str_upper_concat, str_len_of_concat)",
+      "builtins (str_len, str_len_empty, str_upper)",
+      "escapes (str_escape_quote, str_escape_newline)",
+      "type errors on mixed +/order (str_mixed_str_int, str_mixed_int_str)",
+      "ints and strings coexisting (mix_str_then_num)"
+    ]
+  },
+  "expected_results": {
+    "baseline_pristine_pass_rate": "≈0.0 (no minilang / no tbx.Run at all)",
+    "stage1_only_reference_pass_rate": "0.36 (8/22 — only the carried numeric checks pass; all 14 string checks fail because the stage-1 lexer rejects '\"' with 'error: unexpected character')",
+    "accepted_pass_rate": "1.000 (22/22)"
+  },
+  "difficulty_levers": "Strings cannot be bolted on in one place: the lexer, AST, value model, parser, and evaluator all must change in concert, and all stage-1 numeric behaviour (carried hidden checks) must keep passing. Type-aware + plus the integer-only guards on the other operators are the common partial-credit traps.",
+  "validation": {
+    "command": "python scripts/validate_external_task.py benchmark/external_repos/mvm/tasks/mvm_minilang_stage_2/manifest.json --timeout 1200",
+    "expect": "baseline < 0.9, accepted = 1.000, VERDICT PASS"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "flat_response": {
+    "invoices": [
+      {"id": 1, "status": "paid", "amount_cents": 10000, "customer_name": "Acme", "due_date": "2026-06-10T12:00:00+02:00"},
+      {"id": 2, "status": "open", "amount_cents": 25000, "customer_name": "Globex", "due_date": "2026-06-20T12:00:00+02:00"}
+    ]
+  },
+  "nested_response": {
+    "invoices": [
+      {"id": 3, "status": "open", "amount": {"cents": 30000}, "customer": {"name": "Initech"}, "dueDate": "2026-06-15T09:00:00+02:00"},
+      {"id": 4, "status": "paid", "amount": {"cents": 5000}, "customer": null, "dueDate": "2026-06-01T09:00:00+02:00"}
+    ]
+  }
+}

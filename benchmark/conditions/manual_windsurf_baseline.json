@@ -1,0 +1,9 @@
+{
+  "condition_id": "manual_windsurf_baseline",
+  "agent": "manual-ide",
+  "model": "user-entered",
+  "tools": ["external-ide", "windsurf"],
+  "description": "Manual IDE benchmark run through the TokenBench UI (Windsurf).",
+  "cost_basis": "manual_provider_entry",
+  "official": false
+}

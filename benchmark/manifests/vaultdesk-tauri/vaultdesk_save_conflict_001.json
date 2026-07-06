@@ -1,0 +1,51 @@
+{
+  "task_id": "vaultdesk_save_conflict_001",
+  "repo_id": "vaultdesk-tauri",
+  "mode": "atomic",
+  "category": "contract",
+  "difficulty": "hard",
+  "prompt": "Concurrent edits should be detected. Implement the revision-checked save contract: save_note_with_revision(payload) where payload carries path, content, expectedRevision, and overwrite, returning { ok, revision, conflict, currentRevision }. A save whose expectedRevision is stale must be rejected as a conflict unless overwrite is true, leaving stored content unchanged; an accepted save increments the revision. The TypeScript wrapper src/api/notes.ts normalizeSaveResult must expose the same { ok, revision, conflict, currentRevision } shape, tolerating an older snake_case backend result.",
+  "issue_title": "Editing a note from two windows can overwrite newer content without warning",
+  "issue_body": "Concurrent edits should be detected. Implement the revision-checked save contract: save_note_with_revision(payload) where payload carries path, content, expectedRevision, and overwrite, returning { ok, revision, conflict, currentRevision }. A save whose expectedRevision is stale must be rejected as a conflict unless overwrite is true, leaving stored content unchanged; an accepted save increments the revision. The TypeScript wrapper src/api/notes.ts normalizeSaveResult must expose the same { ok, revision, conflict, currentRevision } shape, tolerating an older snake_case backend result.",
+  "expected_behavior": [
+    "A save with the current revision is accepted and increments the revision.",
+    "A stale save is rejected as a conflict and leaves content unchanged.",
+    "A stale save with overwrite true is accepted.",
+    "normalizeSaveResult returns ok, revision, conflict, currentRevision for current and older backend shapes."
+  ],
+  "broken_snapshot": "benchmark/repos/vaultdesk-tauri/broken/vaultdesk_save_conflict_001",
+  "gold_snapshot": "benchmark/repos/vaultdesk-tauri/gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py"
+  ],
+  "hidden_commands": [
+    "python -m pytest benchmark/tests/vaultdesk-tauri/vaultdesk_save_conflict_001/hidden/test_hidden.py -q"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "src-tauri/src/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**",
+    "src-tauri/tests/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "save_note_with_revision lost its stale-rejection branch, so every save writes and increments regardless of expectedRevision, never reporting a conflict and overwriting newer content. Separately normalizeSaveResult was narrowed to read only currentRevision, so an older snake_case result carrying current_revision is misread.",
+  "skills_tested": [
+    "optimistic concurrency",
+    "conflict detection contract",
+    "frontend snake_case tolerance"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "Restore the conflict branch: accept when expectedRevision equals the stored revision (increment), reject as conflict when stale and overwrite is false (leave content untouched), accept when stale and overwrite is true (increment). Restore the snake_case fallback so normalizeSaveResult reads currentRevision ?? current_revision."
+}

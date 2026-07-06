@@ -1,0 +1,46 @@
+{
+  "task_id": "marketlab_lookahead_feature_001",
+  "repo_id": "marketlab-ml",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "The rolling feature rolling_mean_prior is used as a tradeable signal at each row, so it must be causal: the value at row i may only use rows strictly before i. Fix it so the current candle is not included in its own feature value.",
+  "broken_snapshot": "benchmark/repos/marketlab-ml/broken/marketlab_lookahead_feature_001",
+  "gold_snapshot": "benchmark/repos/marketlab-ml/gold",
+  "visible_commands": [
+    "pytest -q tests_visible"
+  ],
+  "hidden_commands": [
+    "pytest -q benchmark/tests/marketlab-ml/marketlab_lookahead_feature_001/hidden"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "marketlab/**",
+    "configs/**",
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/logs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Rolling feature slices values[start:i+1], including the current candle, leaking the present into the signal.",
+  "skills_tested": [
+    "lookahead bias",
+    "time-series causality",
+    "feature engineering"
+  ],
+  "root_cause_files": [
+    "marketlab/features.py"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 1,
+  "task_author_notes": "Correct fix: slice values[start:i] so row i uses only prior rows; out[0] is None."
+}

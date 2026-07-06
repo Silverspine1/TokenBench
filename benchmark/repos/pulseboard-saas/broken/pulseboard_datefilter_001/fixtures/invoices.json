@@ -1,0 +1,6 @@
+[
+  { "id": 1, "status": "paid", "amount": 100, "dueDate": "2026-06-10T12:00:00-05:00" },
+  { "id": 2, "status": "open", "amount": 200, "dueDate": "2026-06-20T12:00:00-05:00" },
+  { "id": 3, "status": "paid", "amount": 50, "dueDate": "2026-06-15T23:30:00-05:00" },
+  { "id": 4, "status": "void", "amount": 0, "dueDate": "2026-05-30T09:00:00-05:00" }
+]

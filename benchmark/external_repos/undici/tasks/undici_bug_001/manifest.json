@@ -1,0 +1,54 @@
+{
+  "task_id": "undici_bug_001",
+  "repo_id": "undici",
+  "repo_kind": "external_github",
+  "source_ref": "benchmark/external_repos/undici/source.json",
+  "base_commit": "01444a164dd97d2719131fdf69accaaed5a5a906",
+  "defect_patch": "defect.patch",
+  "private_notes_path": "private_notes.json",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "medium",
+  "issue_title": "Credentials can reach a different host after a redirect",
+  "issue_body": "When a request follows a redirect that points to a different host, sensitive headers from the original request are sometimes sent to the new host instead of being removed. Requests that follow a redirect to the same host are not affected.",
+  "prompt": "When a request follows a redirect that points to a different host, sensitive headers from the original request are sometimes sent to the new host instead of being removed. Requests that follow a redirect to the same host are not affected.",
+  "expected_behavior": [
+    "Object-form headers have authorization, cookie, and proxy-authorization stripped on cross-origin redirect.",
+    "Array-form header stripping behavior is unchanged.",
+    "Same-origin redirects do not strip those headers.",
+    "Non-sensitive headers are forwarded on all redirects."
+  ],
+  "visible_commands": [
+    "node --test tests_visible/test_visible.js"
+  ],
+  "hidden_commands": [
+    "node --test benchmark/external_repos/undici/tasks/undici_bug_001/hidden_tests/test_hidden.js"
+  ],
+  "allowed_runtime_seconds": 300,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "lib/**",
+    "index.js"
+  ],
+  "ignored_paths": [
+    "test/**",
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "skills_tested": [
+    "HTTP redirect",
+    "header security",
+    "object vs array form"
+  ],
+  "root_cause_files": [
+    "lib/handler/redirect-handler.js"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 2,
+  "broken_snapshot": "",
+  "gold_snapshot": ""
+}

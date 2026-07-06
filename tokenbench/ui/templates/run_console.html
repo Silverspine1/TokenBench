@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Run · {{ run_id }}{% endblock %}
+{% block content %}
+<h1>Manual run console</h1>
+<p class="muted">Run <code>{{ run_id }}</code></p>
+<div id="console" class="panel">
+  <p><strong>Workspace:</strong> <code id="workspace_path">…</code>
+     <button class="btn" id="copy-path">Copy path</button></p>
+  <p><strong>Status:</strong> <span id="status">…</span></p>
+  <h2>Task prompt <button class="btn" id="copy-prompt">Copy prompt</button></h2>
+  <pre id="prompt" class="prompt">Loading…</pre>
+  <h2>Visible test command(s)</h2>
+  <pre id="visible">…</pre>
+  <div class="actions">
+    <button class="btn primary" id="submit">Submit candidate &amp; score</button>
+  </div>
+  <p class="muted">Open the workspace in your IDE, solve the task, then submit.
+  Hidden tests run only after submission and are never shown here.</p>
+</div>
+{% endblock %}
+{% block page_script %}
+<script>window.RUN_ID = {{ run_id|tojson }};</script>
+{% endblock %}

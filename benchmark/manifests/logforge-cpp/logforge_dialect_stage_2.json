@@ -1,0 +1,56 @@
+{
+  "task_id": "logforge_dialect_stage_2",
+  "repo_id": "logforge-cpp",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "medium",
+  "stage": 2,
+  "stage_group_id": "logforge_dialect",
+  "previous_stage_task_id": "logforge_dialect_stage_1",
+  "input_source": "previous_candidate",
+  "prompt": "Some customers now run the tool over very large exports - files far too big to hold in memory all at once - and the tool runs out of memory or grinds to a halt because it reads the whole file in before it computes anything. They need to point it at one of these large files and get the same column summary back without the tool trying to load the entire file first; it should be able to work through the input a piece at a time and keep only a running summary.\n\nThis has to keep working for the files that don't use commas between columns: when a caller has told the tool which separator their file uses, the piece-at-a-time path must read those files exactly the same way the normal path already does, and the summary it returns must match what the tool produces today for the same file and column.\n\nProvide logforge::streamSummary(std::istream& in, int columnIndex, const Dialect& dialect, bool skipHeader), declared under include/logforge/, returning the same Summary type the existing summary uses. It must fold the stream one line at a time into a running Summary (count, sum, mean, min, max) for the given column, parsing each line with the supplied dialect and optionally skipping a header line, never loading the whole input at once, and must match the existing full-file summary for the same file and column.",
+  "issue_title": "The tool runs out of memory on very large files",
+  "issue_body": "Some customers now run the tool over very large exports - files far too big to hold in memory all at once - and the tool runs out of memory or grinds to a halt because it reads the whole file in before it computes anything. They need to point it at one of these large files and get the same column summary back without the tool trying to load the entire file first; it should be able to work through the input a piece at a time and keep only a running summary.\n\nThis has to keep working for the files that don't use commas between columns: when a caller has told the tool which separator their file uses, the piece-at-a-time path must read those files exactly the same way the normal path already does, and the summary it returns must match what the tool produces today for the same file and column.\n\nProvide logforge::streamSummary(std::istream& in, int columnIndex, const Dialect& dialect, bool skipHeader), declared under include/logforge/, returning the same Summary type the existing summary uses. It must fold the stream one line at a time into a running Summary (count, sum, mean, min, max) for the given column, parsing each line with the supplied dialect and optionally skipping a header line, never loading the whole input at once, and must match the existing full-file summary for the same file and column.",
+  "expected_behavior": [
+    "A column summary can be produced by working through the input a piece at a time, without first holding the whole input in memory.",
+    "The incremental path produces the same count, sum, mean, min and max as reading the whole file and summarising it.",
+    "The incremental path honours the caller's chosen separator exactly the same way the existing path does, including keeping a quoted column whole when it contains that separator.",
+    "Non-numeric cells are skipped and an empty input yields a zero summary, as today.",
+    "Expose logforge::streamSummary(in, columnIndex, dialect, skipHeader) -> Summary, folding the stream line-by-line and reusing the dialect parsing."
+  ],
+  "broken_snapshot": "benchmark/repos/logforge-cpp/broken/logforge_dialect_stage_2",
+  "gold_snapshot": "benchmark/repos/logforge-cpp/staged/logforge_dialect_stage_2_gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py"
+  ],
+  "hidden_commands": [
+    "python benchmark/tests/logforge-cpp/logforge_dialect_stage_2/hidden/run_hidden.py"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "include/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "There is no incremental path: the only way to summarise a column is to read every line into memory first and then summarise, so a file too large to hold in memory cannot be processed.",
+  "skills_tested": [
+    "incremental processing",
+    "reusing an existing abstraction",
+    "behavior preservation"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 6,
+  "task_author_notes": "Stage 2 of the logforge_dialect group. Runs on the agent's Stage 1 candidate. Reference adds streamSummary(std::istream&, column, Dialect, skipHeader) in include/logforge/stream.hpp + src/stream.cpp that reads one line at a time and folds finite numeric values into a running Summary, reusing parseLineWith with the same Dialect from Stage 1. Extension friction is low when Stage 1 produced a clean Dialect abstraction (streamSummary just reuses parseLineWith); high when Stage 1 hardcoded the separator choice, forcing a parser rewrite to honour the chosen shape on the incremental path."
+}

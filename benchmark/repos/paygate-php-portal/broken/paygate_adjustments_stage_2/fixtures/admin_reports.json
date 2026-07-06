@@ -1,0 +1,10 @@
+[
+    {
+        "orderId": "order_1",
+        "currency": "USD",
+        "totalCents": 2234,
+        "paidCents": 2234,
+        "dueCents": 0,
+        "status": "paid"
+    }
+]

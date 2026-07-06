@@ -1,0 +1,76 @@
+{
+  "task_id": "paygate_service_reorg_001",
+  "repo_id": "paygate-php-portal",
+  "mode": "atomic",
+  "category": "reorg",
+  "difficulty": "medium",
+  "prompt": "Payment flow changes are risky because unrelated logic is bundled together. A previous legacy import flattened the checkout, provider-notification (webhook), and refund flows into a couple of catch-all files (app/legacy/flow.php and app/legacy/actions.php), each mixing several unrelated responsibilities. The flows still work, but touching one concern means reading through all of them.\n\nReorganize the code around clear service responsibilities, with controllers as thin request/response boundaries. The orchestration belongs in services at these canonical paths: app/Services/CheckoutService.php (checkout orchestration), app/Services/WebhookService.php (webhook handling), and app/Services/RefundService.php (refund handling). The request/response actions belong in thin controllers at app/Controllers/CheckoutController.php, app/Controllers/WebhookController.php, and app/Controllers/RefundController.php. public/index.php must remain the entrypoint and the existing public request behavior (checkout, webhooks, refunds, admin report) must not change.",
+  "issue_title": "Payment flow changes are risky because unrelated logic is bundled together.",
+  "issue_body": "A previous legacy import flattened the checkout, provider-notification (webhook), and refund flows into a couple of catch-all files (app/legacy/flow.php and app/legacy/actions.php), each mixing several unrelated responsibilities. The flows still work, but touching one concern means reading through all of them.\n\nReorganize the code around clear service responsibilities, with controllers as thin request/response boundaries. The orchestration belongs in services at these canonical paths: app/Services/CheckoutService.php (checkout orchestration), app/Services/WebhookService.php (webhook handling), and app/Services/RefundService.php (refund handling). The request/response actions belong in thin controllers at app/Controllers/CheckoutController.php, app/Controllers/WebhookController.php, and app/Controllers/RefundController.php. public/index.php must remain the entrypoint and the existing public request behavior (checkout, webhooks, refunds, admin report) must not change.",
+  "expected_behavior": [
+    "Checkout, webhook, and refund orchestration live in dedicated services under app/Services/ at their canonical paths, autoloaded by PSR-4.",
+    "Controllers under app/Controllers/ are thin request/response boundaries that delegate to the services.",
+    "public/index.php remains the entrypoint and the public request behavior is unchanged.",
+    "The flattened legacy catch-all files are gone."
+  ],
+  "broken_snapshot": "benchmark/repos/paygate-php-portal/broken/paygate_service_reorg_001",
+  "gold_snapshot": "benchmark/repos/paygate-php-portal/gold",
+  "visible_commands": [
+    "python tests_visible/run_reorg_smoke.py",
+    "python tests_visible/run_output_stress.py"
+  ],
+  "output_stress": {
+    "enabled": true,
+    "expected_visible_output_bytes_min": 50000,
+    "expected_visible_output_bytes_max": 300000
+  },
+  "hidden_commands": [
+    "python -m pytest benchmark/tests/paygate-php-portal/paygate_service_reorg_001/hidden/test_hidden.py -q"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "app/**",
+    "public/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "structure_contract": {
+    "required_paths": [
+      "app/Services/CheckoutService.php",
+      "app/Services/WebhookService.php",
+      "app/Services/RefundService.php",
+      "app/Controllers/CheckoutController.php",
+      "app/Controllers/WebhookController.php",
+      "app/Controllers/RefundController.php"
+    ],
+    "forbidden_paths": [
+      "app/legacy/flow.php",
+      "app/legacy/actions.php"
+    ],
+    "compatibility_imports": [
+      "public/index.php"
+    ],
+    "public_entrypoints": [
+      "public/index.php"
+    ]
+  },
+  "expected_failure_summary": "Checkout, webhook, and refund flows (plus their controllers) are flattened into opaque legacy catch-all files loaded by an explicit bootstrap shim, so they cannot be imported or maintained at their canonical App\\Services and App\\Controllers paths.",
+  "skills_tested": [
+    "module decomposition",
+    "PSR-4 autoload rewiring",
+    "behavior preservation"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 6,
+  "expected_changed_files_max": 16,
+  "task_author_notes": "Reorg. Broken flattens the three App\\Services flow classes (CheckoutService, WebhookService, RefundService) into app/legacy/flow.php and the three App\\Controllers classes (CheckoutController, WebhookController, RefundController) into app/legacy/actions.php, with a bootstrap.php shim that require()s them since they are off the PSR-4 path. Restoring the six canonical app/Services/*.php and app/Controllers/*.php files (gold already has them) and removing the legacy files + shim satisfies the structure contract and the hidden behaviour checks, which gate each behaviour on the corresponding canonical file existing. Long-output candidate: run_output_stress.py emits ~190 KB."
+}

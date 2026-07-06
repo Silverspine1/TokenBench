@@ -1,0 +1,56 @@
+{
+  "root_cause_files": ["stdlib/core/tbx.go"],
+  "extension_contract": {
+    "function": "tbx.Ordinalize(n int) string",
+    "rules": [
+      "n >= 1: number + suffix; suffix is 'st' when n%10==1, 'nd' when n%10==2, 'rd' when n%10==3, else 'th' (1->1st, 2->2nd, 3->3rd, 4->4th, 21->21st, 22->22nd, 101->101st).",
+      "Teens exception: if n%100 is in 11..13 the suffix is 'th' regardless of the last digit (11->11th, 12->12th, 13->13th, 111->111th, 112->112th, 213->213th).",
+      "n == 0 -> '0th'.",
+      "n < 0 -> '-' + Ordinalize(abs(n)) (-1 -> -1st, -22 -> -22nd, -111 -> -111th)."
+    ]
+  },
+  "injection_strategy": "tbx.go is a bespoke, repo-local stdlib extension (package core, registered as stdlib.Values['tbx']). The defect.patch introduces the whole file already carrying three independent faults across separate helpers/branches; the accepted_solution.patch repairs all three.",
+  "bugs": [
+    {
+      "id": "BUG1",
+      "hinted": true,
+      "location": "suffixFor, switch case 3",
+      "fault": "case 3 returns \"th\" instead of \"rd\", so any value whose last digit is 3 (outside the teens) gets the wrong ending: 3->3th, 23->23th, 103->103th.",
+      "fix": "case 3 returns \"rd\"."
+    },
+    {
+      "id": "BUG2",
+      "hinted": false,
+      "location": "suffixFor, teens guard",
+      "fault": "Teens are detected with `n == 11 || n == 12 || n == 13` instead of `n%100` in 11..13, so teens above one hundred escape the exception: 111->111st, 112->112nd (113 happens to read correctly only because of BUG1's case-3 change).",
+      "fix": "Guard on `mod100 := n % 100; mod100 >= 11 && mod100 <= 13`."
+    },
+    {
+      "id": "BUG3",
+      "hinted": false,
+      "location": "tbxOrdinalize, negative branch",
+      "fault": "Negative inputs drop the leading minus sign: -1->1st, -22->22nd, -111->111st.",
+      "fix": "Prefix the formatted magnitude with \"-\"."
+    }
+  ],
+  "behavior_paths": [
+    "final-digit suffix selection (BUG1)",
+    "teens exception above 100 (BUG2)",
+    "negative-value sign handling (BUG3)"
+  ],
+  "breakage_map": {
+    "fail_in_broken": ["three (BUG1)", "twenty_three (BUG1)", "hundred_three (BUG1)", "one_eleven (BUG2)", "one_twelve (BUG2)", "minus_one (BUG3)", "minus_twenty_two (BUG3)"],
+    "pass_in_broken_controls": ["one", "two", "five", "twenty_one", "zero"]
+  },
+  "partial_fix_traps": [
+    "The prompt only gestures at 'wrong ending' and shows 1st/2nd/3rd, which points at BUG1 (the last-digit suffix) and nothing else. Fixing only case 3 -> 'rd' still leaves the teens-above-100 checks (one_eleven, one_twelve) and the negative checks (minus_one, minus_twenty_two) failing.",
+    "Fixing BUG1 and BUG2 but not BUG3 leaves both negative checks failing.",
+    "Zero is a control: the broken code already prints 0th, so a fix that only special-cases zero changes nothing observable."
+  ],
+  "expected_failure_summary": "12 hidden checks. Broken passes the 5 controls only (one, two, five, twenty_one, zero) -> 5/12 = 0.417, well under the 0.9 gate. Accepted (all three bugs repaired) passes 12/12 = 1.000. Fixing only the hinted BUG1 raises broken to 8/12 = 0.667, still under 0.9.",
+  "validation": {
+    "broken_pass_rate_target": "0.4-0.7",
+    "accepted_pass_rate": "1.000",
+    "only_bug1_fixed_pass_rate": "0.667"
+  }
+}

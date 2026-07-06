@@ -1,0 +1,46 @@
+{
+  "task_id": "marketlab_split_leakage_001",
+  "repo_id": "marketlab-ml",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "medium",
+  "prompt": "Backtest results look far better than they should. The training set for an evaluation run ends up containing rows that come after rows in the test set, so the model is effectively trained on data from its own future. The split between training and test data needs to preserve chronological order: every training row must precede every test row, with no shuffling and no overlap.",
+  "broken_snapshot": "benchmark/repos/marketlab-ml/broken/marketlab_split_leakage_001",
+  "gold_snapshot": "benchmark/repos/marketlab-ml/gold",
+  "visible_commands": [
+    "pytest -q tests_visible"
+  ],
+  "hidden_commands": [
+    "pytest -q benchmark/tests/marketlab-ml/marketlab_split_leakage_001/hidden"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "marketlab/**",
+    "configs/**",
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/logs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Split interleaves rows by parity (rows[0::2]/rows[1::2]) instead of splitting chronologically, leaking future rows into training.",
+  "skills_tested": [
+    "train/test leakage",
+    "time-series split",
+    "backtest assumptions"
+  ],
+  "root_cause_files": [
+    "marketlab/split.py"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 1,
+  "task_author_notes": "Correct fix: take the last round(n*test_size) rows as the test set, earlier rows as train, preserving order."
+}

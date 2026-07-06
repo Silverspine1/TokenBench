@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "theme": "dark",
+  "vault_root": "/vault/data",
+  "fontSize": 14,
+  "customPlugin": {
+    "keep": 42
+  }
+}

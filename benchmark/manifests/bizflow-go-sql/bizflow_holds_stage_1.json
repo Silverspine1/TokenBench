@@ -1,0 +1,55 @@
+{
+  "task_id": "bizflow_holds_stage_1",
+  "repo_id": "bizflow-go-sql",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "medium",
+  "stage": 1,
+  "stage_group_id": "bizflow_holds",
+  "next_stage_task_id": "bizflow_holds_stage_2",
+  "prompt": "Sales staff want to set stock aside for a customer who is still deciding, before any bill is raised. Today there is no way to do that: the only thing that ties up stock is a finished sale, so while a customer deliberates the same units can be promised to someone else and the business ends up over-committed. Add a way to put a temporary reservation on a quantity of a product for a customer, separate from raising a bill. While such a reservation is in place those units must not be available to anyone else, and there must be a way to let the reservation go again, returning the units to availability. Setting one aside must be all-or-nothing and must never set aside more than is genuinely available.\n\nImplement this in the internal/service package: a HoldService constructed by service.NewHoldService(db). It must expose Place(tenantID, sku string, qty int, createdOn string) (Hold, error) - which reserves qty units of the product for the tenant and returns the created Hold (a struct with a string ID field), or returns an error without changing anything if qty exceeds the product's available stock (available = OnHand - Reserved) - and Release(holdID string) error, which frees that hold's units back to availability.",
+  "issue_title": "No way to set stock aside for a customer before billing",
+  "issue_body": "Sales staff want to set stock aside for a customer who is still deciding, before any bill is raised. Today there is no way to do that: the only thing that ties up stock is a finished sale, so while a customer deliberates the same units can be promised to someone else and the business ends up over-committed. Add a way to put a temporary reservation on a quantity of a product for a customer, separate from raising a bill. While such a reservation is in place those units must not be available to anyone else, and there must be a way to let the reservation go again, returning the units to availability. Setting one aside must be all-or-nothing and must never set aside more than is genuinely available.\n\nImplement this in the internal/service package: a HoldService constructed by service.NewHoldService(db). It must expose Place(tenantID, sku string, qty int, createdOn string) (Hold, error) - which reserves qty units of the product for the tenant and returns the created Hold (a struct with a string ID field), or returns an error without changing anything if qty exceeds the product's available stock (available = OnHand - Reserved) - and Release(holdID string) error, which frees that hold's units back to availability.",
+  "expected_behavior": [
+    "Setting stock aside for a customer reduces what is available by the amount set aside.",
+    "Letting a reservation go returns exactly its units to availability, affecting no other reservation.",
+    "A reservation that asks for more than is available is refused and changes nothing.",
+    "Stock already set aside cannot be set aside again by another reservation.",
+    "Expose service.HoldService (via service.NewHoldService(db)) with Place(tenantID, sku, qty, createdOn) (Hold, error) and Release(holdID) error; a Hold carries a string ID."
+  ],
+  "broken_snapshot": "benchmark/repos/bizflow-go-sql/broken/bizflow_holds_stage_1",
+  "gold_snapshot": "benchmark/repos/bizflow-go-sql/staged/bizflow_holds_stage_1_gold",
+  "visible_commands": [
+    "go test ./tests_visible/..."
+  ],
+  "hidden_commands": [
+    "python benchmark/tests/bizflow-go-sql/bizflow_holds_stage_1/hidden/run_hidden.py"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "internal/**",
+    "migrations/**",
+    "cmd/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The broken snapshot has no concept of a temporary stock reservation: only a completed sale ties up stock, so there is no way to set units aside for a customer and release them, and concurrent commitments can over-promise the same units.",
+  "skills_tested": [
+    "feature implementation",
+    "transactional state change",
+    "extensible data modelling"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 3,
+  "expected_changed_files_max": 7,
+  "task_author_notes": "Stage 1 of the bizflow_holds group. Reference adds a holds concept: a 0003_holds migration creating the holds table (id, tenant_id, sku, quantity, created_at), a repository.HoldRepo (internal/repository/holds.go) with Insert/Get/ListByTenant/All/SetQuantity/Delete, a store.Table.Delete helper (internal/store/table.go), and a service.HoldService (internal/service/holds.go) exposing Place/Release/List. Placing a hold reserves stock (increments products.reserved) and records a hold row inside a single transaction; releasing frees it. The clean lever for Stage 2: a private consume(holdID, units, fulfil) helper and a model.Hold record carrying quantity, so expiry (release filtered by time) and partial fulfillment (a quantity-parameterized consume that also draws down on_hand) are cheap additions rather than a rewrite. The hidden check.go imports bizflow/internal/service and calls NewHoldService: on broken HoldService is undefined so it fails to compile; on gold it compiles and the behavioural assertions pass. The visible test imports only stable bizdb/repository/service packages unchanged by holds, so it runs on both snapshots."
+}

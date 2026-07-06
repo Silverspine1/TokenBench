@@ -1,0 +1,67 @@
+{
+  "task_id": "bizflow_reorg_service_001",
+  "repo_id": "bizflow-go-sql",
+  "mode": "atomic",
+  "category": "reorg",
+  "difficulty": "medium",
+  "prompt": "A previous import collapsed the invoice, inventory and reporting logic into a single catch-all package under internal/legacy (internal/legacy/legacy.go), with the unrelated concerns sharing terse internal names and a barrel file (internal/legacy/barrel.go) re-exposing them under their original public spellings. The service code has become hard to maintain and extend since that import.\n\nReorganize this logic into two clear, single-responsibility packages at the canonical layout the rest of the codebase expects:\n- internal/service/invoices.go (package service): the invoice-creation logic together with the inventory/stock logic it depends on, exporting the public constructors NewInvoiceService and NewInventoryService and their types and errors.\n- internal/reports/reports.go (package reports): the tenant revenue reporting and the by-status summary, exporting the public constructor NewService and its types.\n\nThe HTTP handlers under internal/handlers and the cmd/bizflowd entry point currently import internal/legacy; rewire them onto the new internal/service and internal/reports packages. The observable behavior and the public API must not change. Delete internal/legacy once nothing depends on it.",
+  "issue_title": "Service code is hard to maintain after a legacy import",
+  "issue_body": "A previous import collapsed the invoice, inventory and reporting logic into a single catch-all package under internal/legacy (internal/legacy/legacy.go), with the unrelated concerns sharing terse internal names and a barrel file (internal/legacy/barrel.go) re-exposing them under their original public spellings. The service code has become hard to maintain and extend since that import.\n\nReorganize this logic into two clear, single-responsibility packages at the canonical layout the rest of the codebase expects:\n- internal/service/invoices.go (package service): the invoice-creation logic together with the inventory/stock logic it depends on, exporting the public constructors NewInvoiceService and NewInventoryService and their types and errors.\n- internal/reports/reports.go (package reports): the tenant revenue reporting and the by-status summary, exporting the public constructor NewService and its types.\n\nThe HTTP handlers under internal/handlers and the cmd/bizflowd entry point currently import internal/legacy; rewire them onto the new internal/service and internal/reports packages. The observable behavior and the public API must not change. Delete internal/legacy once nothing depends on it.",
+  "expected_behavior": [
+    "Invoice creation, inventory reservation and tenant revenue reporting all produce the same results as before.",
+    "The invoice and inventory logic is reachable through the internal/service package and the reporting logic through the internal/reports package, under their public names.",
+    "The HTTP handlers continue to construct and serve the same services, and the catch-all package is gone.",
+    "Each concern lives in its own focused package."
+  ],
+  "broken_snapshot": "benchmark/repos/bizflow-go-sql/broken/bizflow_reorg_service_001",
+  "gold_snapshot": "benchmark/repos/bizflow-go-sql/staged/bizflow_reorg_service_001_gold",
+  "visible_commands": [
+    "go test ./tests_visible/..."
+  ],
+  "hidden_commands": [
+    "python benchmark/tests/bizflow-go-sql/bizflow_reorg_service_001/hidden/run_hidden.py"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "internal/**",
+    "cmd/**",
+    "migrations/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "structure_contract": {
+    "required_paths": [
+      "internal/service/invoices.go",
+      "internal/reports/reports.go"
+    ],
+    "forbidden_paths": [
+      "internal/legacy/legacy.go",
+      "internal/legacy/barrel.go"
+    ],
+    "compatibility_imports": [
+      "internal/handlers"
+    ],
+    "public_entrypoints": [
+      "internal/handlers"
+    ]
+  },
+  "expected_failure_summary": "Invoice/inventory/reporting concerns are collapsed into the opaque internal/legacy package under terse names with a re-export barrel; the canonical internal/service and internal/reports packages do not exist, so behaviour cannot be imported at its expected location and a build against the canonical packages fails.",
+  "skills_tested": [
+    "package decomposition",
+    "import rewiring",
+    "behavior preservation"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 4,
+  "expected_changed_files_max": 12,
+  "task_author_notes": "Broken collapses the invoice+inventory+reporting logic into a single internal/legacy/legacy.go under terse names (Iv/Iw/Rp, A/R/C/Mk/Rv/S) plus internal/legacy/barrel.go aliasing those onto the public spellings (InvoiceService/InventoryService/ReportService, Create/Reserve/Available/TenantReport/StatusSummary). Handlers and cmd are wired through internal/legacy. A correct reorg relocates the logic into just two canonical files: internal/service/invoices.go (package service, holding both the invoice and inventory logic, exporting NewInvoiceService/NewInventoryService and the Err* values) and internal/reports/reports.go (package reports, exporting NewService), then rewires internal/handlers/{invoices,reports}.go and cmd/bizflowd/main.go onto them, and deletes internal/legacy. The hidden check.go imports bizflow/internal/service and bizflow/internal/reports directly: on broken those two packages are absent so it fails to compile; on gold it compiles and the behavioural assertions pass. The visible test imports only the stable internal/bizdb + internal/repository + internal/store seam (unchanged by the reorg) so it runs on both snapshots. internal/store, internal/repository, internal/model, internal/apiutil, internal/bizdb, migrations are unchanged between gold and broken."
+}

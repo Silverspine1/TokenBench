@@ -1,0 +1,47 @@
+{
+  "task_id": "bizflow_report_scope_001",
+  "repo_id": "bizflow-go-sql",
+  "mode": "atomic",
+  "category": "contract",
+  "difficulty": "hard",
+  "prompt": "Customers say the tenant revenue report (GET /reports/revenue) shows them the wrong picture of what they are owed. A business that just issued a bill and is waiting to be paid does not see that money anywhere in the report, so the amount outstanding looks too low. At the same time, figures occasionally show up that the customer does not recognise as their own, and cancelled bills they have already written off are still being counted as if the business expects to collect on them.\n\nThe report is meant to be an accurate, self-contained statement of one tenant's live revenue.\n\nInvariants:\n- The report reflects exactly the money this one tenant has invoiced and is still owed, and nothing belonging to anyone else.\n- Money the business is owed but has not yet collected is part of the picture, not absent from it.\n- A bill the tenant has cancelled is not revenue and has no effect on what the report shows or totals.\n\nPreserve existing public fields and unrelated behavior.",
+  "issue_title": "Revenue report shows the wrong picture of what a tenant is owed",
+  "issue_body": "Customers say the tenant revenue report (GET /reports/revenue) shows them the wrong picture of what they are owed. A business that just issued a bill and is waiting to be paid does not see that money anywhere in the report, so the amount outstanding looks too low. At the same time, figures occasionally show up that the customer does not recognise as their own, and cancelled bills they have already written off are still being counted as if the business expects to collect on them.\n\nThe report is meant to be an accurate, self-contained statement of one tenant's live revenue.\n\nInvariants:\n- The report reflects exactly the money this one tenant has invoiced and is still owed, and nothing belonging to anyone else.\n- Money the business is owed but has not yet collected is part of the picture, not absent from it.\n- A bill the tenant has cancelled is not revenue and has no effect on what the report shows or totals.\n\nPreserve existing public fields and unrelated behavior.",
+  "broken_snapshot": "benchmark/repos/bizflow-go-sql/broken/bizflow_report_scope_001",
+  "gold_snapshot": "benchmark/repos/bizflow-go-sql/gold",
+  "visible_commands": [
+    "go test ./tests_visible/..."
+  ],
+  "hidden_commands": [
+    "python benchmark/tests/bizflow-go-sql/bizflow_report_scope_001/hidden/run_hidden.py"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "internal/**",
+    "migrations/**",
+    "cmd/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The report reads all invoices without scoping them to the tenant and joins payments with an inner join, while the left-join helper is itself implemented as an inner join. Unpaid invoices are dropped, other tenants' invoices can appear, and cancelled invoices are included in the rows and totals.",
+  "skills_tested": [
+    "tenant scoping",
+    "join semantics",
+    "contract tracing"
+  ],
+  "root_cause_files": [
+    "internal/repository/reports.go",
+    "internal/store/join.go"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "Both files must change. The report query must scope invoices to the tenant, exclude cancelled (void) invoices, and use the left-join helper; the left-join helper must keep left rows that have no match. Fixing only the query still drops unpaid invoices (the helper is broken); fixing only the helper lets other tenants' invoices appear (no tenant scoping). The void-exclusion contract is in docs/reporting_rules.md: a surface fix that only scopes tenant and repairs the join still wrongly includes cancelled invoices in the rows and totals."
+}

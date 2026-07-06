@@ -1,0 +1,10 @@
+# Fast smoke config: tiny windows for quick local runs.
+fee_rate: 0.0005
+slippage_rate: 0.0002
+spread_rate: 0.0001
+window: 2
+horizon: 1
+test_size: 0.25
+train_size: 3
+walk_test_size: 2
+initial_equity: 10000.0

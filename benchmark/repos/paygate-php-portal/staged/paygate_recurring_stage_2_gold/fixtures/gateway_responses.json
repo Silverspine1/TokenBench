@@ -1,0 +1,10 @@
+{
+    "stripe": {
+        "name": "stripe",
+        "signatureHeader": "Stripe-Signature"
+    },
+    "payfast": {
+        "name": "payfast",
+        "signatureHeader": "X-PayFast-Signature"
+    }
+}

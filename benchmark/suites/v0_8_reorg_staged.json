@@ -1,0 +1,20 @@
+{
+  "suite_id": "v0_8_reorg_staged",
+  "description": "V0.8B (unofficial, in progress): repo-reorganization and staged-implementation tasks for the PHP payment-portal (paygate-php-portal) and Rust+TypeScript desktop (vaultdesk-tauri) repos. 4 reorg tasks scored against a deterministic structure_contract (0.70 hidden_behavior + 0.25 structure_contract + 0.05 artifact_integrity), and 8 staged manifests in 4 groups. The reorg tasks run through normal run-suite. The staged manifests are listed here for doctor-suite validation and single-stage runs, but a staged GROUP must be run through `tokenbench run-staged` so Stage 2 executes on Stage 1's candidate output and extension-friction telemetry is produced (staged_score.json). Not an official leaderboard suite until Opus-baselined.",
+  "tasks": [
+    "benchmark/manifests/paygate-php-portal/paygate_provider_reorg_001.json",
+    "benchmark/manifests/paygate-php-portal/paygate_service_reorg_001.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_backend_reorg_001.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_frontend_reorg_001.json",
+    "benchmark/manifests/paygate-php-portal/paygate_adjustments_stage_1.json",
+    "benchmark/manifests/paygate-php-portal/paygate_adjustments_stage_2.json",
+    "benchmark/manifests/paygate-php-portal/paygate_recurring_stage_1.json",
+    "benchmark/manifests/paygate-php-portal/paygate_recurring_stage_2.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_tags_stage_1.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_tags_stage_2.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_revision_stage_1.json",
+    "benchmark/manifests/vaultdesk-tauri/vaultdesk_revision_stage_2.json"
+  ],
+  "required_trials": 1,
+  "official": false
+}

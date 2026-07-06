@@ -1,0 +1,51 @@
+{
+  "task_id": "marketlab_fee_slippage_001",
+  "repo_id": "marketlab-ml",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "Fix the fee and slippage calculation in the backtester. Fees should be charged once and slippage must not be dropped.",
+  "broken_snapshot": "benchmark/repos/marketlab-ml/broken/marketlab_fee_slippage_001",
+  "gold_snapshot": "benchmark/repos/marketlab-ml/gold",
+  "visible_commands": [
+    "pytest -q tests_visible"
+  ],
+  "hidden_commands": [
+    "pytest -q benchmark/tests/marketlab-ml/marketlab_fee_slippage_001/hidden"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "marketlab/**",
+    "configs/**",
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/logs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Broken backtester subtracts the fee twice on exits and drops slippage entirely.",
+  "skills_tested": [
+    "fee accounting",
+    "numerical correctness",
+    "backtest assumptions"
+  ],
+  "root_cause_files": [
+    "marketlab/backtest.py"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 1,
+  "task_author_notes": "Correct fix: return gross_pnl - fee - slippage. Reject any patch that special-cases the visible test inputs.",
+  "output_stress": {
+    "enabled": true,
+    "expected_visible_output_bytes_min": 50000,
+    "expected_visible_output_bytes_max": 300000
+  }
+}

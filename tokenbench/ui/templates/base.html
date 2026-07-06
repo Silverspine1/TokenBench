@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}TokenBench Manual IDE{% endblock %}</title>
+  <link rel="stylesheet" href="/static/styles.css?v={{ static_version }}">
+</head>
+<body>
+  <header>
+    <a href="/" class="brand">TokenBench · Manual IDE</a>
+    <a href="/" class="navlink">Suites</a>
+    <a href="/charts" class="navlink">Charts</a>
+    <a href="/database" class="navlink">Database</a>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  <script src="/static/app.js?v={{ static_version }}"></script>
+  {% block page_script %}{% endblock %}
+</body>
+</html>

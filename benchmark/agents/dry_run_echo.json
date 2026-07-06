@@ -1,0 +1,18 @@
+{
+  "agent_id": "dry_run_echo",
+  "display_name": "Dry-Run Echo",
+  "kind": "cli_agent",
+  "provider": "dry_run",
+  "model": "none",
+  "model_resolution": "configured",
+  "command_template": [
+    "python",
+    "-c",
+    "import sys; data = sys.stdin.read(); sys.stderr.write('dry_run_echo: read %d prompt bytes\\n' % len(data)); print('DRY_RUN_ECHO_AGENT: no edits made. Hidden tests run externally.')"
+  ],
+  "supports_stdin_prompt": true,
+  "supports_workspace_cwd": true,
+  "final_submission_mode": "process_exit",
+  "default_timeout_seconds": 60,
+  "env": {}
+}

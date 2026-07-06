@@ -1,0 +1,99 @@
+diff --git a/Runtime/BuiltIns/MathBuiltIns.cs b/Runtime/BuiltIns/MathBuiltIns.cs
+index 56d66701..008fe319 100644
+--- a/Runtime/BuiltIns/MathBuiltIns.cs
++++ b/Runtime/BuiltIns/MathBuiltIns.cs
+@@ -1,3 +1,5 @@
++using System.Globalization;
++using System.Text;
+ using SharpTS.Execution;
+ using SharpTS.Runtime.Types;
+ 
+@@ -44,6 +46,9 @@ public static class MathBuiltIns
+             // Two argument methods
+             .MethodV2("pow", 2, (_, _, args) =>
+                 RuntimeValue.FromNumber(Math.Pow(args[0].AsNumber(), args[1].AsNumber())))
++            // Compact number formatting helper
++            .MethodV2("compact", 1, (_, _, args) =>
++                RuntimeValue.FromString(Compact(args[0].AsNumber())))
+             // Variable arity methods
+             .MethodV2("min", 2, int.MaxValue, Min)
+             .MethodV2("max", 2, int.MaxValue, Max)
+@@ -80,4 +85,78 @@ public static class MathBuiltIns
+         }
+         return RuntimeValue.FromNumber(max);
+     }
++
++    private static readonly string[] _compactUnits = { "", "K", "M", "B" };
++    private static readonly double[] _compactDivisors = { 1.0, 1e3, 1e6, 1e9 };
++
++    /// <summary>
++    /// Formats a number into a short, human-readable form. Values below one
++    /// thousand are shown as a plain integer; larger values are scaled into
++    /// thousands ("K"), millions ("M") or billions ("B") with a single decimal
++    /// place. The pipeline is: split off the sign, choose the unit, then render
++    /// the scaled value.
++    /// </summary>
++    private static string Compact(double n)
++    {
++        if (n < 0)
++        {
++            return Compact(Math.Abs(n));
++        }
++
++        double abs = Math.Abs(n);
++        if (abs < 1000.0)
++        {
++            return ((long)Math.Floor(abs)).ToString(CultureInfo.InvariantCulture);
++        }
++
++        return CompactScaled(abs);
++    }
++
++    /// <summary>
++    /// Renders a value of at least one thousand. Selects the largest unit whose
++    /// divisor keeps the scaled value below one thousand, rounds that value to a
++    /// single decimal place, and carries up to the next unit when rounding lifts
++    /// the value to a full thousand of the current unit.
++    /// </summary>
++    private static string CompactScaled(double abs)
++    {
++        int unit = 1;
++        while (unit < _compactDivisors.Length - 1 && abs >= _compactDivisors[unit + 1])
++        {
++            unit++;
++        }
++
++        double scaled = abs / _compactDivisors[unit];
++        double rounded = RoundHalfUpOneDecimal(scaled);
++        if (rounded > 1000.0 && unit < _compactUnits.Length - 1)
++        {
++            unit++;
++            rounded = 1.0;
++        }
++
++        return FormatOneDecimal(rounded) + _compactUnits[unit];
++    }
++
++    /// <summary>
++    /// Rounds a non-negative value to one decimal place using round-half-up
++    /// (ties away from zero) so that, for example, 1.45 becomes 1.5.
++    /// </summary>
++    private static double RoundHalfUpOneDecimal(double value)
++    {
++        return Math.Round(value * 10.0) / 10.0;
++    }
++
++    /// <summary>
++    /// Formats a value to one decimal place, dropping a trailing ".0" so whole
++    /// values render without a decimal part.
++    /// </summary>
++    private static string FormatOneDecimal(double value)
++    {
++        string text = value.ToString("0.0", CultureInfo.InvariantCulture);
++        if (text.EndsWith(".0", StringComparison.Ordinal))
++        {
++            text = text.Substring(0, text.Length - 2);
++        }
++        return text;
++    }
+ }

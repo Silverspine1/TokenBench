@@ -1,0 +1,44 @@
+{
+  "task_id": "pulseboard_api_adapter_001",
+  "repo_id": "pulseboard-saas",
+  "mode": "atomic",
+  "category": "contract",
+  "difficulty": "hard",
+  "prompt": "After a recent backend change, some invoice reports fail or show missing amounts and blank customer names, while reports built from older saved data still need to work. The failures show up when a single report mixes invoices that were saved before and after the change. Make the reporting flow handle invoices from either era - including batches that mix both - so amounts and customer names always come through, without changing the fields the rest of the app reads downstream, and without crashing when an invoice has no customer.",
+  "broken_snapshot": "benchmark/repos/pulseboard-saas/broken/pulseboard_api_adapter_001",
+  "gold_snapshot": "benchmark/repos/pulseboard-saas/gold",
+  "visible_commands": [
+    "node tests_visible/run_visible_tests.js"
+  ],
+  "hidden_commands": [
+    "node --test --test-reporter=tap benchmark/tests/pulseboard-saas/pulseboard_api_adapter_001/hidden/test_hidden_api_adapter.js"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The adapter returns the raw response list unnormalized, and the schema no longer reads nested amount/customer objects, so downstream receives mixed, non-canonical shapes.",
+  "skills_tested": [
+    "adapter boundary discipline",
+    "backward compatibility",
+    "canonical shape"
+  ],
+  "root_cause_files": [
+    "src/api/invoicesApi.js",
+    "src/invoices/schema.js"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "adaptInvoices must normalize the list. schema.normalizeInvoice must read amount.cents and customer.name. Both must be fixed."
+}

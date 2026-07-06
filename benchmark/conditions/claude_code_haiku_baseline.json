@@ -1,0 +1,9 @@
+{
+  "condition_id": "claude_code_haiku_baseline",
+  "agent": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
+  "tools": [],
+  "description": "Claude Code baseline using pinned Claude Haiku 4.5 model.",
+  "cost_basis": "provider_reported",
+  "official": false
+}

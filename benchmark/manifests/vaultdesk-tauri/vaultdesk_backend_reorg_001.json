@@ -1,0 +1,81 @@
+{
+  "task_id": "vaultdesk_backend_reorg_001",
+  "repo_id": "vaultdesk-tauri",
+  "mode": "atomic",
+  "category": "reorg",
+  "difficulty": "medium",
+  "prompt": "A previous migration left the desktop backend (the Rust crate under src-tauri) flattened into a few unclear catch-all files (for example src-tauri/src/core1.rs, src-tauri/src/core2.rs, and src-tauri/src/blob.rs), each mixing several unrelated concerns together. File access, vault scanning, the note store, search indexing, settings handling, and the shared value types are all tangled into these opaque piles. The crate still compiles and the command behavior works through the crate-root re-exports, but the backend is painful to extend.\n\nReorganize the backend into clear modules at these canonical paths: command entrypoints under src-tauri/src/commands/ (for example src-tauri/src/commands/files.rs and src-tauri/src/commands/search.rs), filesystem helpers under src-tauri/src/fs/ (for example src-tauri/src/fs/safe_path.rs and src-tauri/src/fs/scanner.rs), search indexing under src-tauri/src/index/ (for example src-tauri/src/index/search_index.rs), and the domain structs under src-tauri/src/domain/ (for example src-tauri/src/domain/search_result.rs). src-tauri/src/lib.rs must remain the crate entrypoint and keep re-exporting the same public symbols, and all command behavior must not change.",
+  "issue_title": "Desktop file and search code is hard to extend after a migration.",
+  "issue_body": "A previous migration left the desktop backend (the Rust crate under src-tauri) flattened into a few unclear catch-all files (for example src-tauri/src/core1.rs, src-tauri/src/core2.rs, and src-tauri/src/blob.rs), each mixing several unrelated concerns together. File access, vault scanning, the note store, search indexing, settings handling, and the shared value types are all tangled into these opaque piles. The crate still compiles and the command behavior works through the crate-root re-exports, but the backend is painful to extend.\n\nReorganize the backend into clear modules at these canonical paths: command entrypoints under src-tauri/src/commands/ (for example src-tauri/src/commands/files.rs and src-tauri/src/commands/search.rs), filesystem helpers under src-tauri/src/fs/ (for example src-tauri/src/fs/safe_path.rs and src-tauri/src/fs/scanner.rs), search indexing under src-tauri/src/index/ (for example src-tauri/src/index/search_index.rs), and the domain structs under src-tauri/src/domain/ (for example src-tauri/src/domain/search_result.rs). src-tauri/src/lib.rs must remain the crate entrypoint and keep re-exporting the same public symbols, and all command behavior must not change.",
+  "expected_behavior": [
+    "Command entrypoints live under src-tauri/src/commands/ at the canonical module paths.",
+    "Filesystem helpers live under src-tauri/src/fs/ and search indexing under src-tauri/src/index/.",
+    "Domain structs live under src-tauri/src/domain/.",
+    "src-tauri/src/lib.rs remains the crate entrypoint and re-exports the same public symbols.",
+    "open_file, search, safe-path resolution, scanning, the note store, and settings migration behave exactly as before.",
+    "The flattened catch-all files (core1.rs, core2.rs, blob.rs) are gone."
+  ],
+  "broken_snapshot": "benchmark/repos/vaultdesk-tauri/broken/vaultdesk_backend_reorg_001",
+  "gold_snapshot": "benchmark/repos/vaultdesk-tauri/gold",
+  "visible_commands": [
+    "python tests_visible/run_backend_reorg_smoke.py",
+    "python tests_visible/run_backend_output_stress.py"
+  ],
+  "output_stress": {
+    "enabled": true,
+    "expected_visible_output_bytes_min": 50000,
+    "expected_visible_output_bytes_max": 300000
+  },
+  "hidden_commands": [
+    "python -m pytest benchmark/tests/vaultdesk-tauri/vaultdesk_backend_reorg_001/hidden/test_hidden.py -q"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src-tauri/src/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**",
+    "src-tauri/tests/**",
+    "src-tauri/examples/**",
+    "tests_visible/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "structure_contract": {
+    "required_paths": [
+      "src-tauri/src/commands/files.rs",
+      "src-tauri/src/commands/search.rs",
+      "src-tauri/src/fs/safe_path.rs",
+      "src-tauri/src/fs/scanner.rs",
+      "src-tauri/src/index/search_index.rs",
+      "src-tauri/src/domain/search_result.rs"
+    ],
+    "forbidden_paths": [
+      "src-tauri/src/core1.rs",
+      "src-tauri/src/core2.rs",
+      "src-tauri/src/blob.rs"
+    ],
+    "compatibility_imports": [
+      "src-tauri/src/lib.rs"
+    ],
+    "public_entrypoints": [
+      "src-tauri/src/lib.rs"
+    ]
+  },
+  "expected_failure_summary": "The backend command surface, filesystem helpers, search index, settings handling, and the shared domain structs are flattened into three opaque catch-all files (core1.rs grouping path/scan/note-store/file+note commands, core2.rs grouping tokenizer/index/search+settings, blob.rs grouping every serde struct), with lib.rs re-exporting the public symbols from those piles. The canonical module paths under src-tauri/src/{commands,fs,index,domain}/ do not exist, so the documented module surface cannot be extended at its canonical paths even though behavior still works through the crate-root re-exports.",
+  "skills_tested": [
+    "module decomposition",
+    "Rust mod/use rewiring",
+    "behavior preservation"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 6,
+  "expected_changed_files_max": 20,
+  "task_author_notes": "Reorg. Broken flattens the canonical Rust modules into src-tauri/src/{core1,core2,blob}.rs and rewires lib.rs to declare `mod {blob,core1,core2}` and re-export the same public symbols, so the crate still compiles and `cargo test` passes. Restoring the canonical commands/, fs/, index/, domain/ (and config/) split modules (gold already has them) and removing core1/core2/blob.rs satisfies the structure contract and the hidden behaviour checks, which each gate a behaviour (open_file, search, safe_path traversal rejection, scanner sort, search_result shape, settings migrate) on the corresponding canonical FILE EXISTING under the copied src-tauri tree (CARGO_MANIFEST_DIR-relative). Rust compiles modules via `mod` decls so file-at-path is not observable at runtime; the harness therefore checks std::path existence plus behaviour. Independent checks give graceful partial credit. Long-output candidate: run_backend_output_stress.py runs the reorg_stress cargo example and emits ~168 KB."
+}

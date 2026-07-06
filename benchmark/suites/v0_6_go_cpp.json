@@ -1,0 +1,18 @@
+{
+  "suite_id": "v0_6_go_cpp",
+  "description": "Unofficial V0.6 expansion suite: 2 new repos x 5 hard tasks. bizflow-go-sql (Go + in-memory relational store) and logforge-cpp (C++17 CSV/stats CLI). Symptom-style, multi-file, invariant-preserving tasks. Not mixed with the v0_5 suites.",
+  "tasks": [
+    "benchmark/manifests/bizflow-go-sql/bizflow_report_scope_001.json",
+    "benchmark/manifests/bizflow-go-sql/bizflow_invoice_rollback_001.json",
+    "benchmark/manifests/bizflow-go-sql/bizflow_stock_oversell_001.json",
+    "benchmark/manifests/bizflow-go-sql/bizflow_invoice_pagination_001.json",
+    "benchmark/manifests/bizflow-go-sql/bizflow_status_summary_001.json",
+    "benchmark/manifests/logforge-cpp/logforge_csv_quoting_001.json",
+    "benchmark/manifests/logforge-cpp/logforge_number_exponent_001.json",
+    "benchmark/manifests/logforge-cpp/logforge_rolling_window_001.json",
+    "benchmark/manifests/logforge-cpp/logforge_format_rounding_001.json",
+    "benchmark/manifests/logforge-cpp/logforge_stats_minmax_001.json"
+  ],
+  "required_trials": 1,
+  "official": false
+}

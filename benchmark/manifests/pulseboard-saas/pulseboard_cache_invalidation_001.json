@@ -1,0 +1,46 @@
+{
+  "task_id": "pulseboard_cache_invalidation_001",
+  "repo_id": "pulseboard-saas",
+  "mode": "atomic",
+  "category": "mixed",
+  "difficulty": "frontier_hard",
+  "prompt": "Filtered invoice reports sometimes show out-of-date results. After someone edits an invoice, reports that should reflect that change keep showing the old numbers. Separately, asking for the exact same report again does more work than it should instead of coming back instantly - and that fast path shouldn't simply be removed to fix the staleness.\n\nExpected:\n- Editing an invoice is reflected in any report it affects.\n- Asking for the same report again reuses the earlier result and stays fast.\n- Different reports never return each other's results.\n- A report handed back to a caller can't be changed by that caller afterwards.\n- Don't fix this by recomputing every report from scratch each time.",
+  "issue_title": "Invoice reports show stale results after edits",
+  "issue_body": "Filtered invoice reports sometimes show out-of-date results. After someone edits an invoice, reports that should reflect that change keep showing the old numbers. Separately, asking for the exact same report again does more work than it should instead of coming back instantly - and that fast path shouldn't simply be removed to fix the staleness.\n\nExpected:\n- Editing an invoice is reflected in any report it affects.\n- Asking for the same report again reuses the earlier result and stays fast.\n- Different reports never return each other's results.\n- A report handed back to a caller can't be changed by that caller afterwards.\n- Don't fix this by recomputing every report from scratch each time.",
+  "broken_snapshot": "benchmark/repos/pulseboard-saas/broken/pulseboard_cache_invalidation_001",
+  "gold_snapshot": "benchmark/repos/pulseboard-saas/gold",
+  "visible_commands": [
+    "node tests_visible/run_visible_tests.js"
+  ],
+  "hidden_commands": [
+    "node --test --test-reporter=tap benchmark/tests/pulseboard-saas/pulseboard_cache_invalidation_001/hidden/test_hidden_cache_invalidation.js"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Cache key is order-sensitive (raw JSON.stringify) so equal filters miss, and updateInvoice no longer clears the cache so updates serve stale reports.",
+  "skills_tested": [
+    "cache key design",
+    "invalidation on mutation",
+    "no-bypass discipline"
+  ],
+  "root_cause_files": [
+    "src/state/cache.js",
+    "src/state/invoiceState.js"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "cacheKey must be order-independent (sorted keys). updateInvoice must clear/invalidate the cache. A fix that bypasses the cache fails the no-recompute case."
+}

@@ -1,0 +1,5 @@
+[
+  { "tenant_id": "t_acme",   "sku": "WIDGET",  "name": "Steel Widget",  "on_hand": 100, "reserved": 0 },
+  { "tenant_id": "t_acme",   "sku": "GADGET",  "name": "Brass Gadget",  "on_hand": 20,  "reserved": 0 },
+  { "tenant_id": "t_globex", "sku": "SPROCKET","name": "Nylon Sprocket","on_hand": 50,  "reserved": 0 }
+]

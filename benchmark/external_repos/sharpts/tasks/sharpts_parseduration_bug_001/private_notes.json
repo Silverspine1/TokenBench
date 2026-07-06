@@ -1,0 +1,56 @@
+{
+  "root_cause_files": ["Runtime/BuiltIns/MathBuiltIns.cs"],
+  "feature": "Math.parseDuration(s: string): number is a bespoke (invented) built-in added under the Math namespace by defect.patch, so the static type checker treats it as `any` and no TypeSystem change is needed. It is implemented as a 3-helper pipeline: PdClean (strip all whitespace) -> PdScan (walk digit-runs followed by a unit letter, accumulating) -> PdUnit (map 'h'/'m'/'s' to seconds, else -1).",
+  "contract": [
+    "1. Strip ALL whitespace from the input (PdClean), so '1h 30 m' == '1h30m'.",
+    "2. Walk the cleaned string: a run of digits forms a value; the next non-digit must be a unit letter ('h'=3600, 'm'=60, 's'=1). Multiply value by the unit's seconds and add to a running total.",
+    "3. Any character that is not a digit and not one of h/m/s makes the input invalid -> return -1.",
+    "4. Trailing digits with NO unit letter (e.g. '90', '1h30') make the input invalid -> return -1.",
+    "5. Empty input (after whitespace strip) is invalid -> return -1.",
+    "Units may repeat/combine in any order in this contract; the hidden cases only use canonical h>m>s ordering."
+  ],
+  "two_bugs": {
+    "BUG_A_minute_factor": {
+      "helper": "PdUnit",
+      "hinted": true,
+      "wrong_code": "case 'm': return 6;",
+      "correct_code": "case 'm': return 60;",
+      "effect": "The minute unit yields 6 seconds instead of 60, so any duration containing minutes is 10x too small for the minutes portion. '30m'->180 (should be 1800), '90m'->540 (should be 5400), '1h30m'->3780 (should be 5400), '1h2m3s'->3615 (should be 3723).",
+      "breaks_checks": ["d7", "d8", "d9"]
+    },
+    "BUG_B_invalid_input_not_rejected": {
+      "helper": "PdScan",
+      "hinted": true,
+      "wrong_code": "the loop returns `total` unconditionally; no empty-string guard and no end-of-loop check that the last digit run was consumed by a unit.",
+      "correct_code": "guard `if (s.Length == 0) return -1;` at the top AND `if (sawDigit) return -1;` after the loop (a digit run that was never followed by a unit letter means trailing digits with no unit).",
+      "effect": "A digit run that is never closed by a unit letter is silently dropped instead of rejected, and empty input returns 0. ''->0 (should be -1), '90'->0 (should be -1), '1h30'->3600 (should be -1).",
+      "breaks_checks": ["d10", "d11", "d12"]
+    }
+  },
+  "why_both_bugs_named_but_still_medium": "Both symptoms are described in the prompt with examples, so a competent solver knows WHAT to fix. The difficulty is that the two defects live in two DIFFERENT helpers (PdUnit vs PdScan) and BUG B requires reasoning about the end-of-input accumulator state (the unconsumed digit run), which a careless fix that only patches the minute factor will miss. There are no leakage hints naming the helpers, the file, or the boolean flag.",
+  "hidden_cases": {
+    "d1": {"input": "2h", "correct": "7200", "broken": "7200", "area": "control (no minutes, valid)"},
+    "d2": {"input": "45s", "correct": "45", "broken": "45", "area": "control"},
+    "d3": {"input": "0s", "correct": "0", "broken": "0", "area": "control (zero)"},
+    "d4": {"input": "1h", "correct": "3600", "broken": "3600", "area": "control"},
+    "d5": {"input": "2h30s", "correct": "7230", "broken": "7230", "area": "control (hours+seconds, no minutes)"},
+    "d6": {"input": "xyz", "correct": "-1", "broken": "-1", "area": "control (unknown char already rejected in broken)"},
+    "d7": {"input": "90m", "correct": "5400", "broken": "540", "area": "BUG A"},
+    "d8": {"input": "1h30m", "correct": "5400", "broken": "3780", "area": "BUG A"},
+    "d9": {"input": "1h2m3s", "correct": "3723", "broken": "3615", "area": "BUG A"},
+    "d10": {"input": "", "correct": "-1", "broken": "0", "area": "BUG B (empty)"},
+    "d11": {"input": "90", "correct": "-1", "broken": "0", "area": "BUG B (bare number, no unit)"},
+    "d12": {"input": "1h30", "correct": "-1", "broken": "3600", "area": "BUG B (trailing digits, no unit)"}
+  },
+  "controls_pass_in_broken": ["d1", "d2", "d3", "d4", "d5", "d6"],
+  "fails_in_broken": ["d7", "d8", "d9", "d10", "d11", "d12"],
+  "partial_fix_traps": [
+    "Fixing only BUG A (minute factor 6 -> 60) makes d7/d8/d9 pass but leaves the invalid-input edge (d10/d11/d12) failing -> 9/12 = 0.75, below the 0.9 gate.",
+    "Fixing only BUG B (invalid-input rejection) makes d10/d11/d12 pass but leaves the minute totals wrong (d7/d8/d9) -> 9/12 = 0.75, below the 0.9 gate.",
+    "Only a fix that corrects BOTH the minute factor AND the end-of-input/empty rejection reaches 12/12."
+  ],
+  "broken_pass_rate": "6/12 = 0.500 (verified by building the broken tree and running all 12 hidden programs).",
+  "accepted_pass_rate": "12/12 = 1.000 (verified by building the accepted tree and running all 12 hidden programs).",
+  "visible": "Single repro of BUG A: Math.parseDuration('30m') should print 1800 but the broken build prints 180. The visible suite intentionally does NOT exercise BUG B, so a symptom-only fix of the visible case still fails the hidden invalid-input checks.",
+  "no_pristine_gold": "The feature is newly added by defect.patch, so there is no pristine gold tree; validate with --skip-gold."
+}

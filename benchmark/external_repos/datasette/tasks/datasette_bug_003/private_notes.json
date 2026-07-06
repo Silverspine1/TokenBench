@@ -1,0 +1,6 @@
+{
+  "root_cause_files": ["datasette/views/base.py"],
+  "injection_strategy": "Swapped the if/else branches for CSV writer construction inside stream_fn. In the correct code, EscapeHtmlWriter wraps the writer only in trace mode (HTML debug view). The bug applies EscapeHtmlWriter in the normal (non-trace) branch instead, causing regular CSV downloads to HTML-encode characters like & < > ' \".",
+  "expected_failure_summary": "Normal CSV downloads have HTML entity encoding: & becomes &amp;, < becomes &lt; etc. The trace=html debug mode is now unescaped (correct values but wrong context). Any test checking raw CSV values with these characters will fail.",
+  "calibration_notes": "Medium difficulty: model must find the inverted if/else block around EscapeHtmlWriter. The fix is a direct swap of two lines."
+}

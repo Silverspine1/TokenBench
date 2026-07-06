@@ -1,0 +1,47 @@
+{
+  "task_id": "bizflow_invoice_rollback_001",
+  "repo_id": "bizflow-go-sql",
+  "mode": "atomic",
+  "category": "contract",
+  "difficulty": "hard",
+  "prompt": "Operators report that a failed invoice leaves a mess behind. When they try to create an invoice that cannot go through - for example a customer's order asks for more of a product than the business has - the attempt is rejected, but afterwards the product looks partly committed even though no sale happened, a half-finished record can linger, and the next invoice they create skips a number as if the abandoned one had really existed. Sometimes an order is even let through that should not have been, leaving stock promised that the business cannot deliver.\n\nCreating an invoice has to be all-or-nothing.\n\nInvariants:\n- A creation either fully succeeds or has no effect whatsoever; a rejected attempt leaves the business in exactly the state it was in beforehand.\n- An invoice is only accepted when everything its customer is ordering can genuinely be fulfilled together, considering the order as a whole rather than each part in isolation.\n- An abandoned attempt is as if it never happened, down to leaving no gap in how invoices are numbered.\n\nPreserve existing public fields and unrelated behavior.",
+  "issue_title": "A rejected invoice still leaves changes behind",
+  "issue_body": "Operators report that a failed invoice leaves a mess behind. When they try to create an invoice that cannot go through - for example a customer's order asks for more of a product than the business has - the attempt is rejected, but afterwards the product looks partly committed even though no sale happened, a half-finished record can linger, and the next invoice they create skips a number as if the abandoned one had really existed. Sometimes an order is even let through that should not have been, leaving stock promised that the business cannot deliver.\n\nCreating an invoice has to be all-or-nothing.\n\nInvariants:\n- A creation either fully succeeds or has no effect whatsoever; a rejected attempt leaves the business in exactly the state it was in beforehand.\n- An invoice is only accepted when everything its customer is ordering can genuinely be fulfilled together, considering the order as a whole rather than each part in isolation.\n- An abandoned attempt is as if it never happened, down to leaving no gap in how invoices are numbered.\n\nPreserve existing public fields and unrelated behavior.",
+  "broken_snapshot": "benchmark/repos/bizflow-go-sql/broken/bizflow_invoice_rollback_001",
+  "gold_snapshot": "benchmark/repos/bizflow-go-sql/gold",
+  "visible_commands": [
+    "go test ./tests_visible/..."
+  ],
+  "hidden_commands": [
+    "python benchmark/tests/bizflow-go-sql/bizflow_invoice_rollback_001/hidden/run_hidden.py"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "internal/**",
+    "migrations/**",
+    "cmd/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Invoice creation reserves each line by mutating stock directly and never undoes that work when a later line fails: the create path returns on error without restoring the savepoint, the savepoint's rollback does not actually restore the captured tables, and the invoice-number sequence is advanced even by a failed attempt so it leaves a gap.",
+  "skills_tested": [
+    "transaction atomicity",
+    "rollback semantics",
+    "cross-file tracing"
+  ],
+  "root_cause_files": [
+    "internal/service/invoices.go",
+    "internal/store/tx.go"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "Both files must change. The create path must undo its work when a line fails to reserve, and the savepoint must actually restore the captured state when undone. Restoring the savepoint alone does nothing because the create path never triggers it; triggering it alone does nothing because the savepoint's undo is empty. Second facet (documented in docs/inventory_rules.md): a failed attempt must not advance the invoice-number sequence, so the create path must hand the number back when it abandons. A surface fix that only wires up the savepoint rollback restores the tables but still leaves a gap in the invoice numbering, failing the hidden numbering check."
+}

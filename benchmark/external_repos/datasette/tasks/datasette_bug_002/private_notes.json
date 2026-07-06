@@ -1,0 +1,6 @@
+{
+  "root_cause_files": ["datasette/app.py"],
+  "injection_strategy": "In apply_metadata_json, the table-level metadata loop's skip condition was extended from just 'columns' to also include 'license', 'license_url', 'source', 'source_url'. This prevents those fields from being stored in the internal metadata_resources table, so they never appear in API responses for that table.",
+  "expected_failure_summary": "Table-level license and source metadata is silently dropped. database-level entries are unaffected because the database-level loop only skips 'tables' and 'queries'.",
+  "calibration_notes": "Medium difficulty: model needs to find apply_metadata_json in app.py and understand the skip-list logic. The bug is a small change to a tuple literal."
+}

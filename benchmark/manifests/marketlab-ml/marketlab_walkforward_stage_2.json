@@ -1,0 +1,57 @@
+{
+  "task_id": "marketlab_walkforward_stage_2",
+  "repo_id": "marketlab-ml",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "medium",
+  "stage": 2,
+  "stage_group_id": "marketlab_walkforward",
+  "previous_stage_task_id": "marketlab_walkforward_stage_1",
+  "input_source": "previous_candidate",
+  "prompt": "Analysts now run the same strategy across several symbols at once and want the walk-forward evaluation broken out per symbol, not pooled into a single series. Today they can only get a walk-forward report for one return series at a time, so comparing symbols means running it repeatedly and stitching the pieces together by hand. Provide a grouped walk-forward report that takes a return series per symbol, reports each symbol's walk-forward windows separately, and rolls the windows up into an overall summary across all symbols.",
+  "issue_title": "Walk-forward reporting can't break results out per symbol",
+  "issue_body": "Analysts now run the same strategy across several symbols at once and want the walk-forward evaluation broken out per symbol, not pooled into a single series. Today they can only get a walk-forward report for one return series at a time, so comparing symbols means running it repeatedly and stitching the pieces together by hand. Provide a grouped walk-forward report that takes a return series per symbol, reports each symbol's walk-forward windows separately, and rolls the windows up into an overall summary across all symbols.",
+  "expected_behavior": [
+    "Given a return series per symbol, the toolkit produces a report with a separate walk-forward group for each symbol, in the order the symbols were supplied.",
+    "Each symbol's group carries its own per-window entries and its own window summary, identical to evaluating that symbol's series on its own.",
+    "An overall summary aggregates across every symbol's windows: the mean window return, the mean window win rate, the worst window drawdown, the total window count, and the number of symbols.",
+    "An empty set of symbols yields an empty, zeroed report rather than an error.",
+    "The single-series walk-forward report and existing evaluation behavior are unchanged."
+  ],
+  "broken_snapshot": "benchmark/repos/marketlab-ml/staged/marketlab_walkforward_stage_1_gold",
+  "gold_snapshot": "benchmark/repos/marketlab-ml/staged/marketlab_walkforward_stage_2_gold",
+  "visible_commands": [
+    "pytest -q tests_visible"
+  ],
+  "hidden_commands": [
+    "pytest -q benchmark/tests/marketlab-ml/marketlab_walkforward_stage_2/hidden"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "marketlab/**",
+    "configs/**",
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/logs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The walk-forward report only handles one series; there is no grouped report that runs each symbol's series separately and rolls the windows up into an overall cross-symbol summary.",
+  "skills_tested": [
+    "feature extension",
+    "reusing an existing abstraction",
+    "cross-group aggregation"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 4,
+  "task_author_notes": "Stage 2 of the marketlab_walkforward group. Runs on the agent's Stage 1 candidate. Reference adds grouped_walk_forward_report(returns_by_symbol, ...) that reuses build_window_rows + summarize_rows per symbol and aggregates all windows into an overall summary, exported via __init__.py. Extension friction is low when Stage 1 modelled a reusable single-series builder and high when Stage 1 hardcoded the single-series path."
+}

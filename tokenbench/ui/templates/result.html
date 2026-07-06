@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Result · {{ run_id }}{% endblock %}
+{% block content %}
+<h1>Result</h1>
+<p class="muted">Run <code>{{ run_id }}</code></p>
+<div id="result" class="panel"><p class="muted">Loading…</p></div>
+
+<h2>Provider cost (manual entry, USD)</h2>
+<form id="cost-form" class="panel">
+  <label>cost_usd <input name="cost_usd" type="number" step="any"></label>
+  <label>input_tokens <input name="input_tokens" type="number"></label>
+  <label>output_tokens <input name="output_tokens" type="number"></label>
+  <label>cache_read_tokens <input name="cache_read_tokens" type="number"></label>
+  <label>cache_write_tokens <input name="cache_write_tokens" type="number"></label>
+  <label>reasoning_tokens <input name="reasoning_tokens" type="number"></label>
+  <label>total_tokens <input name="total_tokens" type="number"></label>
+  <label>source
+    <select name="source">
+      <option>provider_dashboard</option>
+      <option>ide_usage_panel</option>
+      <option>api_response</option>
+      <option>claude_cli_json</option>
+      <option selected>manual_estimate</option>
+      <option>unknown</option>
+    </select>
+  </label>
+  <label>confidence
+    <select name="confidence">
+      <option>high</option><option>medium</option><option selected>low</option>
+    </select>
+  </label>
+  <label>notes <input name="notes"></label>
+  <button class="btn primary" type="submit">Attach cost</button>
+</form>
+<pre id="cost-result" class="muted"></pre>
+{% endblock %}
+{% block page_script %}
+<script>window.RUN_ID = {{ run_id|tojson }};</script>
+{% endblock %}

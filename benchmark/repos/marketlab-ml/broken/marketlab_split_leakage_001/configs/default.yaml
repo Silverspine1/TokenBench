@@ -1,0 +1,8 @@
+# Default backtest configuration.
+horizon: 2          # periods ahead used to build forward labels
+window: 3           # rolling window for prior-bar features
+test_size: 0.3      # fraction of the most recent rows held out for testing
+
+costs:
+  fee_rate: 0.001       # charged on notional per fill
+  slippage_rate: 0.0005 # modelled price impact per fill

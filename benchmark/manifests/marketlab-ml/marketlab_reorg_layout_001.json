@@ -1,0 +1,72 @@
+{
+  "task_id": "marketlab_reorg_layout_001",
+  "repo_id": "marketlab-ml",
+  "mode": "atomic",
+  "category": "reorg",
+  "difficulty": "medium",
+  "prompt": "The evaluation reporting code is hard to extend after a migration collapsed unrelated logic together. The per-fill P&L and equity-curve metrics, the per-window return statistics, the transaction-cost model, and the report assembly all ended up tangled inside a few catch-all modules under marketlab/core/ and marketlab/util/, reached through an indirection layer that renames everything. Adding or changing one concern means touching that shared pile and the name mapping.\n\nReorganize this logic into clear, single-responsibility modules at these canonical paths: marketlab/backtest.py (net_pnl and the equity-curve compute_metrics), marketlab/metrics.py (mean_return, win_rate, max_drawdown_from_returns), marketlab/costs.py (the trade_costs model and its CostBreakdown), and marketlab/reports.py (build_report). Keep marketlab/__init__.py as the public entrypoint that re-exports the same API under the same public names. The observable behavior and the public API must not change.",
+  "issue_title": "Evaluation reporting code is hard to extend after a migration collapsed unrelated logic together",
+  "issue_body": "The evaluation reporting code is hard to extend after a migration collapsed unrelated logic together. The per-fill P&L and equity-curve metrics, the per-window return statistics, the transaction-cost model, and the report assembly all ended up tangled inside a few catch-all modules under marketlab/core/ and marketlab/util/, reached through an indirection layer that renames everything. Adding or changing one concern means touching that shared pile and the name mapping.\n\nReorganize this logic into clear, single-responsibility modules at these canonical paths: marketlab/backtest.py (net_pnl and the equity-curve compute_metrics), marketlab/metrics.py (mean_return, win_rate, max_drawdown_from_returns), marketlab/costs.py (the trade_costs model and its CostBreakdown), and marketlab/reports.py (build_report). Keep marketlab/__init__.py as the public entrypoint that re-exports the same API under the same public names. The observable behavior and the public API must not change.",
+  "expected_behavior": [
+    "Each concern lives in its own focused module at its canonical path: P&L and equity metrics in marketlab/backtest.py, per-window statistics in marketlab/metrics.py, the cost model in marketlab/costs.py, and report assembly in marketlab/reports.py.",
+    "Behavior is unchanged: net P&L, the equity-curve metrics, per-window return statistics, the cost breakdown, and the assembled report all produce the same results as before.",
+    "marketlab/__init__.py keeps exporting the same functions under the same public names, so existing callers do not change how they import.",
+    "The catch-all modules and the renaming indirection layer are gone."
+  ],
+  "broken_snapshot": "benchmark/repos/marketlab-ml/broken/marketlab_reorg_layout_001",
+  "gold_snapshot": "benchmark/repos/marketlab-ml/gold",
+  "visible_commands": [
+    "pytest -q tests_visible/test_reorg_layout_smoke.py"
+  ],
+  "hidden_commands": [
+    "pytest -q benchmark/tests/marketlab-ml/marketlab_reorg_layout_001/hidden"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "marketlab/**",
+    "configs/**",
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/logs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "structure_contract": {
+    "required_paths": [
+      "marketlab/backtest.py",
+      "marketlab/metrics.py",
+      "marketlab/costs.py",
+      "marketlab/reports.py"
+    ],
+    "forbidden_paths": [
+      "marketlab/core/a.py",
+      "marketlab/core/b.py",
+      "marketlab/util/misc.py",
+      "marketlab/core/registry.py"
+    ],
+    "compatibility_imports": [
+      "marketlab/__init__.py"
+    ],
+    "public_entrypoints": [
+      "marketlab/__init__.py"
+    ]
+  },
+  "expected_failure_summary": "Backtest, metrics, cost, and report logic are collapsed into opaque catch-all modules reached via a renaming indirection layer; the canonical per-concern modules do not exist, so behaviour cannot be imported at its expected location.",
+  "skills_tested": [
+    "module decomposition",
+    "import rewiring",
+    "behavior preservation"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 5,
+  "expected_changed_files_max": 14,
+  "task_author_notes": "Broken collapses backtest/metrics/costs/reports into core/a.py (pnl+metrics+window stats), core/b.py (cost object+report), util/misc.py (cost components) plus a core/registry.py barrel that maps short internal names to the public names, with __init__/evaluation/cli routed through the barrel. A correct reorg relocates each concern to its canonical module AND re-exports under the correct public names via __init__.py, satisfying both the hidden behaviour tests and the structure contract."
+}

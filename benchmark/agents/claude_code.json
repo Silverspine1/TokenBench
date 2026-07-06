@@ -1,0 +1,14 @@
+{
+  "agent_id": "claude_code",
+  "display_name": "Claude Code",
+  "kind": "cli_agent",
+  "provider": "claude",
+  "model": "default",
+  "model_resolution": "configured",
+  "command_template": ["claude", "--print", "--disallowedTools", "WebSearch", "WebFetch"],
+  "supports_stdin_prompt": true,
+  "supports_workspace_cwd": true,
+  "final_submission_mode": "process_exit",
+  "default_timeout_seconds": 900,
+  "env": {}
+}

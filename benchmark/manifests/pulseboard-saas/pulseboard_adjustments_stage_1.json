@@ -1,0 +1,51 @@
+{
+  "task_id": "pulseboard_adjustments_stage_1",
+  "repo_id": "pulseboard-saas",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "medium",
+  "stage": 1,
+  "stage_group_id": "pulseboard_adjustments",
+  "next_stage_task_id": "pulseboard_adjustments_stage_2",
+  "prompt": "Finance sometimes applies a manual adjustment to an invoice - a one-off surcharge or discount that is not a payment or a credit memo. Right now those adjustments do not show up anywhere in the invoice totals or the by-status summary, so the amount a customer still owes is wrong whenever an adjustment has been made. Make adjustments part of the reported balances and the per-status summary, without changing the existing summary field names or the behavior for invoices that have no adjustments.",
+  "issue_title": "Finance summaries don't reflect manual invoice adjustments",
+  "issue_body": "Finance sometimes applies a manual adjustment to an invoice - a one-off surcharge or discount that is not a payment or a credit memo. Right now those adjustments do not show up anywhere in the invoice totals or the by-status summary, so the amount a customer still owes is wrong whenever an adjustment has been made. Make adjustments part of the reported balances and the per-status summary, without changing the existing summary field names or the behavior for invoices that have no adjustments.",
+  "expected_behavior": [
+    "An invoice's outstanding balance accounts for its manual adjustments: a surcharge raises it and a discount lowers it.",
+    "The by-status summary reports the adjustments total for each status alongside the existing amounts.",
+    "Invoices with no adjustments behave exactly as before, and the existing summary field names are unchanged.",
+    "An outstanding balance is never negative."
+  ],
+  "broken_snapshot": "benchmark/repos/pulseboard-saas/broken/pulseboard_adjustments_stage_1",
+  "gold_snapshot": "benchmark/repos/pulseboard-saas/staged/pulseboard_adjustments_stage_1_gold",
+  "visible_commands": [
+    "node tests_visible/run_visible_tests.js"
+  ],
+  "hidden_commands": [
+    "node --test --test-reporter=tap benchmark/tests/pulseboard-saas/pulseboard_adjustments_stage_1/hidden/test_hidden_adjustments.js"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**"
+  ],
+  "ignored_paths": [
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Totals and the summary ignore a manual adjustments component, so outstanding balances and per-status rollups omit surcharges/discounts.",
+  "skills_tested": [
+    "feature implementation",
+    "money arithmetic in cents",
+    "extensible data modelling"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 5,
+  "task_author_notes": "Stage 1 of the pulseboard_adjustments group. Reference adds an `adjustments` signed-cents component to the canonical invoice shape (schema.js), folds it into computeTotals outstanding (totals.js), and accumulates it in summarizeByStatus buckets (summary.js). A clean, general signed-component model makes Stage 2 (refunds) a symmetric extension; a hardcoded one forces a rewrite (measured as extension friction)."
+}

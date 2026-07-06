@@ -1,0 +1,46 @@
+{
+  "task_id": "pulseboard_datefilter_boundary_001",
+  "repo_id": "pulseboard-saas",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "The invoice date-range report puts some invoices on the wrong day. An invoice dated near the start or end of a day can fall into the wrong report depending on a customer's time-zone offset, and the last day of a range is sometimes included and sometimes left out. Invoices should be grouped by their local business day.\n\nExpected:\n- Invoices are compared by their local calendar day, using the offset provided (in minutes).\n- The last day of the requested range is included.\n- Results do not depend on the machine's own time zone.\n- The caller's data is not modified.",
+  "issue_title": "Invoices land in the wrong day's report in some time zones",
+  "issue_body": "The invoice date-range report puts some invoices on the wrong day. An invoice dated near the start or end of a day can fall into the wrong report depending on a customer's time-zone offset, and the last day of a range is sometimes included and sometimes left out. Invoices should be grouped by their local business day.\n\nExpected:\n- Invoices are compared by their local calendar day, using the offset provided (in minutes).\n- The last day of the requested range is included.\n- Results do not depend on the machine's own time zone.\n- The caller's data is not modified.",
+  "broken_snapshot": "benchmark/repos/pulseboard-saas/broken/pulseboard_datefilter_boundary_001",
+  "gold_snapshot": "benchmark/repos/pulseboard-saas/gold",
+  "visible_commands": [
+    "node tests_visible/run_visible_tests.js"
+  ],
+  "hidden_commands": [
+    "node --test --test-reporter=tap benchmark/tests/pulseboard-saas/pulseboard_datefilter_boundary_001/hidden/test_hidden_datefilter_boundary.js"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Business-date helper ignores the offset (uses UTC date) and the filter compares the raw ISO date prefix, so boundary invoices are mis-bucketed across offsets.",
+  "skills_tested": [
+    "timezone correctness",
+    "boundary conditions",
+    "deterministic date handling"
+  ],
+  "root_cause_files": [
+    "src/shared/dates.js",
+    "src/invoices/filters.js"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "localBusinessDate must shift by offsetMinutes before reading the date. filters must use onOrBeforeLocal with the offset, not an ISO prefix compare."
+}

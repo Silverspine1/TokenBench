@@ -1,0 +1,75 @@
+{
+  "task_id": "pulseboard_reorg_modules_001",
+  "repo_id": "pulseboard-saas",
+  "mode": "atomic",
+  "category": "reorg",
+  "difficulty": "medium",
+  "prompt": "A previous code import left the invoice and reporting logic collapsed into a few catch-all files under src/ (for example src/m1.js, src/m2.js, src/m3.js, src/m4.js, and src/lib/z.js), each mixing several unrelated concerns. This makes the billing code painful to change safely.\n\nReorganize the invoice and reporting code into clear, single-responsibility modules at these canonical paths: src/invoices/filters.js (status and due-date filtering), src/invoices/export.js (CSV export), src/invoices/totals.js (per-invoice totals), src/invoices/summary.js (by-status summary), and src/shared/money.js (shared money helpers). Keep src/index.js as the public entrypoint that re-exports the same API. The observable behavior and the public API must not change.",
+  "issue_title": "Invoice reporting code is hard to maintain after a legacy import",
+  "issue_body": "A previous code import left the invoice and reporting logic collapsed into a few catch-all files under src/ (for example src/m1.js, src/m2.js, src/m3.js, src/m4.js, and src/lib/z.js), each mixing several unrelated concerns. This makes the billing code painful to change safely.\n\nReorganize the invoice and reporting code into clear, single-responsibility modules at these canonical paths: src/invoices/filters.js (status and due-date filtering), src/invoices/export.js (CSV export), src/invoices/totals.js (per-invoice totals), src/invoices/summary.js (by-status summary), and src/shared/money.js (shared money helpers). Keep src/index.js as the public entrypoint that re-exports the same API. The observable behavior and the public API must not change.",
+  "expected_behavior": [
+    "The public reporting and billing behavior is unchanged: filtering, CSV export, per-invoice totals, and the by-status summary all produce the same results as before.",
+    "The public entrypoint src/index.js keeps exporting the same functions, so existing callers do not change how they import.",
+    "Each concern lives in its own focused module and the catch-all files are gone."
+  ],
+  "broken_snapshot": "benchmark/repos/pulseboard-saas/broken/pulseboard_reorg_modules_001",
+  "gold_snapshot": "benchmark/repos/pulseboard-saas/gold",
+  "visible_commands": [
+    "node tests_visible/run_reorg_smoke.js",
+    "node tests_visible/run_output_stress.js"
+  ],
+  "output_stress": {
+    "enabled": true,
+    "expected_visible_output_bytes_min": 50000,
+    "expected_visible_output_bytes_max": 300000
+  },
+  "hidden_commands": [
+    "node --test --test-reporter=tap benchmark/tests/pulseboard-saas/pulseboard_reorg_modules_001/hidden/test_hidden_reorg_modules.js"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**"
+  ],
+  "ignored_paths": [
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "structure_contract": {
+    "required_paths": [
+      "src/invoices/filters.js",
+      "src/invoices/export.js",
+      "src/invoices/totals.js",
+      "src/invoices/summary.js",
+      "src/shared/money.js"
+    ],
+    "forbidden_paths": [
+      "src/m1.js",
+      "src/m2.js",
+      "src/m3.js",
+      "src/m4.js",
+      "src/lib/z.js"
+    ],
+    "compatibility_imports": [
+      "src/index.js"
+    ],
+    "public_entrypoints": [
+      "src/index.js"
+    ]
+  },
+  "expected_failure_summary": "Invoice/reporting concerns are collapsed into opaque catch-all files; the canonical per-concern modules do not exist so behaviour cannot be imported at its expected location.",
+  "skills_tested": [
+    "module decomposition",
+    "import rewiring",
+    "behavior preservation"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 5,
+  "expected_changed_files_max": 16,
+  "task_author_notes": "Broken collapses invoices/{filters,export,summary,totals,schema} + shared/money into m1/m2/m3/lib/z. Restoring the per-concern modules under src/invoices and src/shared with preserved behaviour, re-exported via index.js, satisfies both the hidden behaviour tests and the structure contract."
+}

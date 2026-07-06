@@ -1,0 +1,72 @@
+[
+  {
+    "name": "happy path: 255 in base 16 is ff",
+    "program": "c1.ts",
+    "exact": "ff"
+  },
+  {
+    "name": "happy path: 10 in base 2 is 1010",
+    "program": "c2.ts",
+    "exact": "1010"
+  },
+  {
+    "name": "zero converts to \"0\" regardless of base",
+    "program": "c3.ts",
+    "exact": "0"
+  },
+  {
+    "name": "negative value: leading minus then magnitude (-42 base 16)",
+    "program": "c4.ts",
+    "exact": "-2a"
+  },
+  {
+    "name": "base 2 boundary: 255 is eight ones",
+    "program": "c5.ts",
+    "exact": "11111111"
+  },
+  {
+    "name": "base 8: 100 is 144",
+    "program": "c6.ts",
+    "exact": "144"
+  },
+  {
+    "name": "single hex digit boundary: 15 is f",
+    "program": "c7.ts",
+    "exact": "f"
+  },
+  {
+    "name": "two hex digit boundary: 16 is 10",
+    "program": "c8.ts",
+    "exact": "10"
+  },
+  {
+    "name": "negative in base 2: sign plus magnitude",
+    "program": "c9.ts",
+    "exact": "-11111111"
+  },
+  {
+    "name": "digits above 9 map to lowercase a-f: 171 base 16 is ab",
+    "program": "c10.ts",
+    "exact": "ab"
+  },
+  {
+    "name": "smallest negative in base 2 is -1",
+    "program": "c11.ts",
+    "exact": "-1"
+  },
+  {
+    "name": "multi-digit hex with a letter digit: 1000 is 3e8",
+    "program": "c12.ts",
+    "exact": "3e8"
+  },
+  {
+    "name": "base 10 acts as plain decimal: 7 is 7",
+    "program": "c13.ts",
+    "exact": "7"
+  },
+  {
+    "name": "negative power-of-base in hex: -256 is -100",
+    "program": "c14.ts",
+    "exact": "-100"
+  }
+]

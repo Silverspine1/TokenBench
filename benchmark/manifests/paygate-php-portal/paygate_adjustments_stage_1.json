@@ -1,0 +1,40 @@
+{
+  "task_id": "paygate_adjustments_stage_1",
+  "repo_id": "paygate-php-portal",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "medium",
+  "stage": 1,
+  "stage_group_id": "paygate_adjustments",
+  "next_stage_task_id": "paygate_adjustments_stage_2",
+  "prompt": "Some invoices need manual adjustments after checkout - a one-off surcharge or discount that finance applies by hand. Today those adjustments are nowhere in the finance summaries, so admin reports show the wrong amount still owed. Add adjustment-aware invoice summaries. Introduce an Adjustment record with a signed amountCents (positive is a surcharge, negative is a discount), a reason, and a createdAt timestamp, recorded against an order. Then expose an invoice summary, one row per invoice, with the fields orderId, grossCents, adjustmentsCents, paidCents and dueCents, such that grossCents + adjustmentsCents - paidCents equals dueCents. Invoices that have no adjustments must behave exactly as before, and the existing admin report fields must be preserved.\n\nWire the feature through the existing dependency Container (app/Container.php) so it can be driven programmatically, using these exact public names: a Container property `adjustmentService` whose method `add($orderId, $amountCents, $reason)` records and returns the Adjustment; a Container property `adjustmentsRepo` whose method `findByOrder($orderId)` returns the recorded Adjustment objects for that order (each object exposing public `amountCents`, `reason`, and `createdAt`); and an `App\\Services\\InvoiceService` method `summary()` that takes no arguments and returns an array with one row per invoice carrying the fields named above.",
+  "issue_title": "Finance needs invoice summaries to include manual adjustments.",
+  "issue_body": "Some invoices need manual adjustments after checkout - a one-off surcharge or discount that finance applies by hand. Today those adjustments are nowhere in the finance summaries, so admin reports show the wrong amount still owed. Add adjustment-aware invoice summaries. Introduce an Adjustment record with a signed amountCents (positive is a surcharge, negative is a discount), a reason, and a createdAt timestamp, recorded against an order. Then expose an invoice summary, one row per invoice, with the fields orderId, grossCents, adjustmentsCents, paidCents and dueCents, such that grossCents + adjustmentsCents - paidCents equals dueCents. Invoices that have no adjustments must behave exactly as before, and the existing admin report fields must be preserved.\n\nWire the feature through the existing dependency Container (app/Container.php) so it can be driven programmatically, using these exact public names: a Container property `adjustmentService` whose method `add($orderId, $amountCents, $reason)` records and returns the Adjustment; a Container property `adjustmentsRepo` whose method `findByOrder($orderId)` returns the recorded Adjustment objects for that order (each object exposing public `amountCents`, `reason`, and `createdAt`); and an `App\\Services\\InvoiceService` method `summary()` that takes no arguments and returns an array with one row per invoice carrying the fields named above.",
+  "expected_behavior": [
+    "An Adjustment record carries a signed amountCents, a reason, and a createdAt, and is recorded against an order.",
+    "A positive adjustment raises the amount due; a negative adjustment lowers it; multiple adjustments net together.",
+    "The invoice summary exposes orderId, grossCents, adjustmentsCents, paidCents and dueCents, and grossCents + adjustmentsCents - paidCents reconciles to dueCents.",
+    "Invoices with no adjustments behave exactly as before and the existing admin report fields are unchanged.",
+    "The feature is reachable via the Container as adjustmentService->add($orderId, $amountCents, $reason), adjustmentsRepo->findByOrder($orderId), and InvoiceService::summary()."
+  ],
+  "broken_snapshot": "benchmark/repos/paygate-php-portal/broken/paygate_adjustments_stage_1",
+  "gold_snapshot": "benchmark/repos/paygate-php-portal/staged/paygate_adjustments_stage_1_gold",
+  "visible_commands": ["python tests_visible/run_visible.py"],
+  "hidden_commands": ["python -m pytest benchmark/tests/paygate-php-portal/paygate_adjustments_stage_1/hidden/test_hidden.py -q"],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": ["app/**", "public/**"],
+  "ignored_paths": ["docs/**", "fixtures/**"],
+  "forbidden_paths": ["benchmark/**", "tests/**", ".tokenbench/**"],
+  "expected_failure_summary": "The baseline has no adjustment concept and no summary output: there is no Adjustment record, no store for adjustments, and InvoiceService exposes no adjustment-aware per-invoice summary, so adjustments never reach the reported balances.",
+  "skills_tested": [
+    "feature implementation",
+    "money arithmetic in cents",
+    "extensible data modelling"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 6,
+  "task_author_notes": "Stage 1 of the paygate_adjustments group. Reference adds an Adjustment domain type (signed amountCents + reason + createdAt), an AdjustmentRepository backed by a new Database->adjustments map, an AdjustmentService to record them, and an adjustment-aware InvoiceService::summary() that folds due from signed components (gross + adjustments - paid). Modelling due as a sum of signed components - not hardcoded arithmetic - makes Stage 2 (refunds) a symmetric extension; a hardcoded summary forces a rewrite, measured as extension friction."
+}

@@ -1,0 +1,9 @@
+{
+  "condition_id": "claude_code_graphify",
+  "agent": "claude-code",
+  "model": "opus-4.8",
+  "tools": ["graphify"],
+  "description": "Claude Code with a repo-map (graphify) tool enabled.",
+  "cost_basis": "provider_reported",
+  "official": false
+}

@@ -1,0 +1,52 @@
+{
+  "task_id": "logforge_stats_minmax_001",
+  "repo_id": "logforge-cpp",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "The summary's smallest and largest figures come out wrong for some data, and users with negative readings cannot trust the report.\n\nWhen every reading is below zero, the largest figure is reported as zero even though not one of the values is anywhere near zero. Separately, when readings are pulled from a column of a data file, the report behaves as though the negatives were positive, so a column of below-zero readings is summarised as if all its values had been flipped to the positive side. Data made up of ordinary positive numbers summarises correctly.\n\nThe summary is expected to reflect the actual data:\n- The smallest and largest figures are the least and greatest values that are genuinely present, whatever their sign, and a lone reading is both the smallest and the largest.\n- A reading drawn from a data column keeps the value it actually has, sign and all.\n\nPreserve existing public types/fields and unrelated behavior.",
+  "issue_title": "Summary smallest/largest are wrong for some data",
+  "issue_body": "The summary's smallest and largest figures come out wrong for some data, and users with negative readings cannot trust the report.\n\nWhen every reading is below zero, the largest figure is reported as zero even though not one of the values is anywhere near zero. Separately, when readings are pulled from a column of a data file, the report behaves as though the negatives were positive, so a column of below-zero readings is summarised as if all its values had been flipped to the positive side. Data made up of ordinary positive numbers summarises correctly.\n\nThe summary is expected to reflect the actual data:\n- The smallest and largest figures are the least and greatest values that are genuinely present, whatever their sign, and a lone reading is both the smallest and the largest.\n- A reading drawn from a data column keeps the value it actually has, sign and all.\n\nPreserve existing public types/fields and unrelated behavior.",
+  "broken_snapshot": "benchmark/repos/logforge-cpp/broken/logforge_stats_minmax_001",
+  "gold_snapshot": "benchmark/repos/logforge-cpp/gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py"
+  ],
+  "hidden_commands": [
+    "python benchmark/tests/logforge-cpp/logforge_stats_minmax_001/hidden/run_hidden.py"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "include/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The summary leaves max at its default of 0 instead of seeding it from the first value, so all-negative data never updates max above zero. Independently, the column extractor stores std::fabs of each reading, discarding the sign so negative columns are summarised as if positive.",
+  "skills_tested": [
+    "running min/max seeding",
+    "sign preservation",
+    "aggregate initialization"
+  ],
+  "root_cause_files": [
+    "src/stats.cpp",
+    "src/column.cpp"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "output_stress": {
+    "enabled": true,
+    "expected_visible_output_bytes_min": 50000,
+    "expected_visible_output_bytes_max": 300000
+  },
+  "task_author_notes": "Two coupled defects. summarize must seed s.max = values[0] alongside s.min before the loop; leaving s.max at the struct default of 0 makes every all-negative column report a max of 0. Separately numericColumn must stop applying std::fabs and store each parsed value with its sign. Fixing only summarize still strips the sign from column readings; fixing only numericColumn still reports a max of 0 for all-negative in-memory data."
+}

@@ -1,0 +1,54 @@
+{
+  "root_cause_files": ["Runtime/BuiltIns/MathBuiltIns.cs"],
+  "feature": "Math.roman(n: number): string is a bespoke (invented) built-in added under the Math namespace, so the static type checker treats it as `any` and no TypeSystem change is needed. It is implemented as an entry method Roman(double) that validates range and drops the fractional part, plus a per-place Tier(...) helper that emits the glyphs for the thousands/hundreds/tens/ones place using a switch on the place digit.",
+  "contract": [
+    "1. Truncate the argument to an integer (drop the fractional part).",
+    "2. Reject out-of-range input: any integer < 1 OR > 3999 maps to the empty string (no Roman representation).",
+    "3. For each place value (1000, 100, 10, 1) emit glyphs using classical notation: 0-3 additive (e.g. III), 4 subtractive (one+five, e.g. IV), 5-8 additive on top of five (e.g. VIII), 9 subtractive (one+ten, e.g. IX).",
+    "4. Concatenate place outputs from most to least significant. Examples: 4->IV, 9->IX, 40->XL, 90->XC, 444->CDXLIV, 900->CM, 2024->MMXXIV, 3888->MMMDCCCLXXXVIII, 3999->MMMCMXCIX."
+  ],
+  "two_bugs": {
+    "BUG_A_nine_form": {
+      "helper": "Tier (the `case 9` arm)",
+      "hinted": true,
+      "wrong_code": "case 9: sb.Append(five); for (int i = 0; i < 4; i++) sb.Append(one); break;",
+      "correct_code": "case 9: sb.Append(one); sb.Append(ten); break;",
+      "effect": "The 9 in any place is rendered as five followed by four ones (an additive run) instead of the subtractive one+ten. So 9 -> VIIII (not IX), 90 -> LXXXX (not XC), 900 -> DCCCC (not CM), 3999 -> MMMDCCCCLXXXXVIIII (not MMMCMXCIX).",
+      "breaks_checks": ["r7", "r8", "r9", "r10"]
+    },
+    "BUG_B_upper_range_guard": {
+      "helper": "Roman (the range guard)",
+      "hinted": true,
+      "wrong_code": "if (n < 1) { return string.Empty; }",
+      "correct_code": "if (n < 1 || n > 3999) { return string.Empty; }",
+      "effect": "Only the lower bound is checked. Inputs above 3999 are not rejected, so the thousands Tier runs with a digit of 4+ and emits a malformed string (4000 -> 'M\\u0000', 5000 -> '\\u0000') instead of the empty string. This is the edge a quick fix to the 9-form overlooks: fixing only BUG A still leaves out-of-range input broken.",
+      "breaks_checks": ["r11", "r12"]
+    }
+  },
+  "why_medium": "Both symptoms are named in the prompt with concrete examples, so this is a normal two-symptom bug report, not a hidden-bug trap. The genuine gotcha is that the two defects live in different helpers: BUG A is in the per-place switch (Tier), BUG B is in the entry guard (Roman). A solver who patches only the visible 9-form symptom (BUG A) and stops -- or who 'fixes' the range by clamping rather than returning empty -- leaves BUG B failing and scores 10/12 = 0.833, below the 0.9 gate. Fixing both is a small, clean change once both are read.",
+  "hidden_cases": {
+    "r1": {"input": 1, "correct": "I", "area": "control (additive ones)"},
+    "r2": {"input": 14, "correct": "XIV", "area": "control (subtractive-4 ones + additive tens)"},
+    "r3": {"input": 40, "correct": "XL", "area": "control (subtractive 4 in tens place)"},
+    "r4": {"input": 444, "correct": "CDXLIV", "area": "control (subtractive 4 in all three places)"},
+    "r5": {"input": 2024, "correct": "MMXXIV", "area": "control"},
+    "r6": {"input": 3888, "correct": "MMMDCCCLXXXVIII", "area": "control (additive 5-8 in every place)"},
+    "r7": {"input": 9, "correct": "IX", "broken": "VIIII", "area": "BUG A (9 in ones)"},
+    "r8": {"input": 90, "correct": "XC", "broken": "LXXXX", "area": "BUG A (9 in tens)"},
+    "r9": {"input": 900, "correct": "CM", "broken": "DCCCC", "area": "BUG A (9 in hundreds)"},
+    "r10": {"input": 3999, "correct": "MMMCMXCIX", "broken": "MMMDCCCCLXXXXVIIII", "area": "BUG A (9 in three places at once, max value)"},
+    "r11": {"input": 4000, "correct": "", "broken": "M\\u0000", "area": "BUG B (just above range)"},
+    "r12": {"input": 5000, "correct": "", "broken": "\\u0000", "area": "BUG B (well above range)"}
+  },
+  "controls_pass_in_broken": ["r1", "r2", "r3", "r4", "r5", "r6"],
+  "fails_in_broken": ["r7", "r8", "r9", "r10", "r11", "r12"],
+  "partial_fix_traps": [
+    "Fixing only BUG A (the 9-form) makes r7-r10 pass but leaves r11/r12 (out-of-range) failing -> 10/12 = 0.833, below the 0.9 gate.",
+    "Fixing only BUG B (the range guard) makes r11/r12 pass but leaves r7-r10 failing -> 8/12 = 0.667, below the gate.",
+    "Both bugs are explicitly described with examples, so a competent solver typically fixes both; the trap only catches a solver who treats the prompt as a single-symptom report and patches just the demonstrated 9 case."
+  ],
+  "broken_pass_rate": "6/12 = 0.500 (controls r1-r6 pass; r7-r12 fail).",
+  "accepted_pass_rate": "12/12 = 1.000.",
+  "visible": "Single repro: Math.roman(9) -> expected 'IX'. Fails in broken (renders 'VIIII'), passes when fixed. Demonstrates BUG A only; the visible suite does not exercise the out-of-range edge.",
+  "no_pristine_gold": "The feature is newly added by defect.patch, so there is no pristine gold tree; validate with --skip-gold."
+}

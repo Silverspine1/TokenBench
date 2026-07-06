@@ -1,0 +1,31 @@
+diff --git a/Runtime/BuiltIns/MathBuiltIns.cs b/Runtime/BuiltIns/MathBuiltIns.cs
+index 008fe319..5304df31 100644
+--- a/Runtime/BuiltIns/MathBuiltIns.cs
++++ b/Runtime/BuiltIns/MathBuiltIns.cs
+@@ -100,7 +100,7 @@ public static class MathBuiltIns
+     {
+         if (n < 0)
+         {
+-            return Compact(Math.Abs(n));
++            return "-" + Compact(Math.Abs(n));
+         }
+ 
+         double abs = Math.Abs(n);
+@@ -128,7 +128,7 @@ public static class MathBuiltIns
+ 
+         double scaled = abs / _compactDivisors[unit];
+         double rounded = RoundHalfUpOneDecimal(scaled);
+-        if (rounded > 1000.0 && unit < _compactUnits.Length - 1)
++        if (rounded >= 1000.0 && unit < _compactUnits.Length - 1)
+         {
+             unit++;
+             rounded = 1.0;
+@@ -143,7 +143,7 @@ public static class MathBuiltIns
+     /// </summary>
+     private static double RoundHalfUpOneDecimal(double value)
+     {
+-        return Math.Round(value * 10.0) / 10.0;
++        return Math.Floor(value * 10.0 + 0.5) / 10.0;
+     }
+ 
+     /// <summary>

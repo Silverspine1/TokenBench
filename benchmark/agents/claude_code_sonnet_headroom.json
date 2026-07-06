@@ -1,0 +1,28 @@
+{
+  "agent_id": "claude_code_sonnet_headroom",
+  "display_name": "Claude Code Sonnet 4.6 (Headroom)",
+  "kind": "cli_agent",
+  "provider": "claude",
+  "model": "claude-sonnet-4-6",
+  "model_resolution": "configured",
+  "command_template": [
+    "claude",
+    "--print",
+    "--output-format",
+    "json",
+    "--dangerously-skip-permissions",
+    "--disallowedTools",
+    "WebSearch",
+    "WebFetch",
+    "--model",
+    "claude-sonnet-4-6"
+  ],
+  "supports_stdin_prompt": true,
+  "supports_workspace_cwd": true,
+  "final_submission_mode": "process_exit",
+  "default_timeout_seconds": 900,
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://127.0.0.1:8787",
+    "ENABLE_TOOL_SEARCH": "true"
+  }
+}

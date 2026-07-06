@@ -1,0 +1,43 @@
+{
+  "task_id": "pulseboard_contract_001",
+  "repo_id": "pulseboard-saas",
+  "mode": "atomic",
+  "category": "contract",
+  "difficulty": "hard",
+  "prompt": "The API returns invoices in snake_case with amount_cents, but the UI/export layer expects amountCents. Fix normalizeInvoice so it translates the API shape into the internal shape at this boundary, for both single invoices and lists.",
+  "broken_snapshot": "benchmark/repos/pulseboard-saas/broken/pulseboard_contract_001",
+  "gold_snapshot": "benchmark/repos/pulseboard-saas/gold",
+  "visible_commands": [
+    "node tests_visible/run_visible_tests.js"
+  ],
+  "hidden_commands": [
+    "node benchmark/tests/pulseboard-saas/pulseboard_contract_001/hidden/test_hidden_contract.js"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "normalizeInvoice passes the raw API shape through, leaving amount_cents and never producing amountCents.",
+  "skills_tested": [
+    "API/UI contract",
+    "boundary normalization",
+    "data mapping"
+  ],
+  "root_cause_files": [
+    "src/contract.js"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 1,
+  "task_author_notes": "Correct fix maps amount_cents -> amountCents at the boundary and does not leak the raw key. Reject one-off patches that only add amountCents while keeping amount_cents."
+}

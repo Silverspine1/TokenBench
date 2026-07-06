@@ -1,0 +1,9 @@
+[project]
+name = "marketlab-ml"
+version = "0.1.0"
+description = "Backtesting toolkit for trading signals on candle data."
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.setuptools]
+packages = ["marketlab"]

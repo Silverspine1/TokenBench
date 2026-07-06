@@ -1,0 +1,57 @@
+{
+  "task_id": "vaultdesk_tags_stage_1",
+  "repo_id": "vaultdesk-tauri",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "hard",
+  "stage": 1,
+  "stage_group_id": "vaultdesk_tags_saved_searches",
+  "next_stage_task_id": "vaultdesk_tags_stage_2",
+  "prompt": "Users need to tag notes and search by tag. Add note tagging so users can create tags, assign a tag to a note, remove a tag from a note, and search notes by tag, while keeping the existing text search intact.\n\nThe hidden harness compiles against the crate's public API by exact name, path, and signature, so implement EXACTLY this surface (no renames, no signature changes).\n\nRust tag store (a standalone in-memory primitive, re-exported at the crate root so callers can write `vaultdesk::TagStore`):\n- `struct TagStore` with `pub fn new() -> TagStore`.\n- `pub fn has_tag(&self, name: &str) -> bool` (true once a tag is created/assigned).\n- It must expose enough to back the commands below; tag names and note ids are ordered so reads are deterministic.\n\nRust tag commands (free functions in `commands::tags`, re-exported at the crate root as `vaultdesk::create_tag` / `vaultdesk::assign_tag_to_note` / `vaultdesk::remove_tag_from_note`), with EXACTLY these signatures:\n- `pub fn create_tag(tags: &mut TagStore, name: &str) -> bool` — returns true when the tag exists after the call; creating an existing tag is a no-op that still returns true.\n- `pub fn assign_tag_to_note(tags: &mut TagStore, name: &str, note_id: &str) -> bool` — creates the tag on demand; assigning the same (tag, note) pair more than once is idempotent and still returns true.\n- `pub fn remove_tag_from_note(tags: &mut TagStore, name: &str, note_id: &str) -> bool` — removing an absent pair is a no-op that still returns true.\n- `pub fn search_by_tag(index: &SearchIndex, tags: &TagStore, name: &str) -> Vec<SearchResult>` (re-exported as `vaultdesk::search_by_tag`) — returns the notes carrying the tag.\n\nThe existing `SearchIndex` (re-exported as `vaultdesk::SearchIndex`) is constructed via `SearchIndex::new()` and populated via `index.add(id, title, path, content)`; the existing `pub fn search(index: &SearchIndex, q: &str) -> Vec<SearchResult>` (`vaultdesk::search`) MUST remain unchanged. `search_by_tag` must return the SAME canonical `SearchResult` shape and the SAME deterministic ordering (score descending, then id ascending) as `search`. `SearchResult` (re-exported as `vaultdesk::SearchResult`) is `#[derive(Serialize)]` with fields exactly `id: String`, `title: String`, `path: String`, `snippet: String`, `score: f64`, serializing to keys `{ id, title, path, snippet, score }` and nothing else.\n\nFrontend (TypeScript): in `src/api/search.ts`, add and export `export function searchByTag(invoke: Invoker, tagName: string): SearchResultView[]` that calls `invoke(\"search_by_tag\", { name: tagName })` and normalizes the raw list into the canonical `{ id, title, path, snippet, score }` shape (using the existing `normalizeSearchResults`). Keep the existing `export function searchByText(invoke: Invoker, query: string)` wrapper, which must still call `invoke(\"search\", { q: query })`. The node harness imports `{ searchByTag, searchByText }` from `src/api/search.ts` by those exact names.",
+  "issue_title": "Users need to tag notes and search by tag.",
+  "issue_body": "Users want to organize notes with tags: create a tag, assign it to notes, remove it, and then pull up every note carrying a tag. Today there is no way to do any of that, and whatever is added must not disturb the existing full-text search. Search-by-tag results should look and sort exactly like text-search results.\n\nThe hidden harness compiles against the crate's public API by exact name, path, and signature, so implement EXACTLY this surface (no renames, no signature changes).\n\nRust tag store (a standalone in-memory primitive, re-exported at the crate root so callers can write `vaultdesk::TagStore`):\n- `struct TagStore` with `pub fn new() -> TagStore`.\n- `pub fn has_tag(&self, name: &str) -> bool` (true once a tag is created/assigned).\n- It must expose enough to back the commands below; tag names and note ids are ordered so reads are deterministic.\n\nRust tag commands (free functions in `commands::tags`, re-exported at the crate root as `vaultdesk::create_tag` / `vaultdesk::assign_tag_to_note` / `vaultdesk::remove_tag_from_note`), with EXACTLY these signatures:\n- `pub fn create_tag(tags: &mut TagStore, name: &str) -> bool` — returns true when the tag exists after the call; creating an existing tag is a no-op that still returns true.\n- `pub fn assign_tag_to_note(tags: &mut TagStore, name: &str, note_id: &str) -> bool` — creates the tag on demand; assigning the same (tag, note) pair more than once is idempotent and still returns true.\n- `pub fn remove_tag_from_note(tags: &mut TagStore, name: &str, note_id: &str) -> bool` — removing an absent pair is a no-op that still returns true.\n- `pub fn search_by_tag(index: &SearchIndex, tags: &TagStore, name: &str) -> Vec<SearchResult>` (re-exported as `vaultdesk::search_by_tag`) — returns the notes carrying the tag.\n\nThe existing `SearchIndex` (re-exported as `vaultdesk::SearchIndex`) is constructed via `SearchIndex::new()` and populated via `index.add(id, title, path, content)`; the existing `pub fn search(index: &SearchIndex, q: &str) -> Vec<SearchResult>` (`vaultdesk::search`) MUST remain unchanged. `search_by_tag` must return the SAME canonical `SearchResult` shape and the SAME deterministic ordering (score descending, then id ascending) as `search`. `SearchResult` (re-exported as `vaultdesk::SearchResult`) is `#[derive(Serialize)]` with fields exactly `id: String`, `title: String`, `path: String`, `snippet: String`, `score: f64`, serializing to keys `{ id, title, path, snippet, score }` and nothing else.\n\nFrontend (TypeScript): in `src/api/search.ts`, add and export `export function searchByTag(invoke: Invoker, tagName: string): SearchResultView[]` that calls `invoke(\"search_by_tag\", { name: tagName })` and normalizes the raw list into the canonical `{ id, title, path, snippet, score }` shape (using the existing `normalizeSearchResults`). Keep the existing `export function searchByText(invoke: Invoker, query: string)` wrapper, which must still call `invoke(\"search\", { q: query })`. The node harness imports `{ searchByTag, searchByText }` from `src/api/search.ts` by those exact names.",
+  "expected_behavior": [
+    "create_tag creates a tag; creating an existing tag is a no-op that still succeeds.",
+    "assign_tag_to_note assigns a tag to a note; search_by_tag then returns that note.",
+    "remove_tag_from_note removes the assignment; the note no longer appears under that tag.",
+    "search_by_tag returns the canonical { id, title, path, snippet, score } shape in deterministic order.",
+    "Assigning the same tag to the same note twice leaves a single membership (idempotent).",
+    "Existing text search continues to work unchanged.",
+    "Named entry points (exact): vaultdesk::TagStore (TagStore::new(), has_tag(&self, &str) -> bool); vaultdesk::create_tag(tags: &mut TagStore, name: &str) -> bool; vaultdesk::assign_tag_to_note(tags: &mut TagStore, name: &str, note_id: &str) -> bool; vaultdesk::remove_tag_from_note(tags: &mut TagStore, name: &str, note_id: &str) -> bool; vaultdesk::search_by_tag(index: &SearchIndex, tags: &TagStore, name: &str) -> Vec<SearchResult>; unchanged vaultdesk::search(index: &SearchIndex, q: &str) -> Vec<SearchResult> and SearchIndex::new()/index.add(id, title, path, content); SearchResult fields { id, title, path, snippet, score }; TS exports searchByTag(invoke, tagName) and searchByText(invoke, query) in src/api/search.ts."
+  ],
+  "broken_snapshot": "benchmark/repos/vaultdesk-tauri/broken/vaultdesk_tags_stage_1",
+  "gold_snapshot": "benchmark/repos/vaultdesk-tauri/staged/vaultdesk_tags_stage_1_gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py"
+  ],
+  "hidden_commands": [
+    "python -m pytest benchmark/tests/vaultdesk-tauri/vaultdesk_tags_stage_1/hidden/test_hidden.py -q"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "src-tauri/src/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**",
+    "src-tauri/tests/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The baseline has no tagging surface at all: there is no tag store, no create_tag/assign_tag_to_note/remove_tag_from_note commands, no search_by_tag path, and no searchByTag frontend wrapper, so notes cannot be tagged or retrieved by tag.",
+  "skills_tested": [
+    "feature implementation",
+    "reusable data modelling",
+    "cross-language contract design"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 4,
+  "expected_changed_files_max": 9,
+  "task_author_notes": "Stage 1 of the vaultdesk_tags_saved_searches group. Reference adds a standalone TagStore primitive (index/tag_index.rs) and a composable search path (SearchIndex::query_filtered taking an optional id allowlist) so text-only, tag-only, and combined queries share one ranking. Commands live in commands/tags.rs; the frontend searchByTag wrapper lives in src/api/search.ts. Designing the tag store and search composition as reusable primitives (rather than tags bolted into one search call) is what makes Stage 2 (saved searches combining text+tags) a clean extension; a hardcoded tag-only search forces a Stage 2 rewrite."
+}

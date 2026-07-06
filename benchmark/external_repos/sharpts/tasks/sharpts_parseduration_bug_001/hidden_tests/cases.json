@@ -1,0 +1,62 @@
+[
+  {
+    "name": "single hour unit (control)",
+    "program": "d1.ts",
+    "exact": "7200"
+  },
+  {
+    "name": "single second unit (control)",
+    "program": "d2.ts",
+    "exact": "45"
+  },
+  {
+    "name": "zero seconds (control)",
+    "program": "d3.ts",
+    "exact": "0"
+  },
+  {
+    "name": "single hour, round value (control)",
+    "program": "d4.ts",
+    "exact": "3600"
+  },
+  {
+    "name": "hours plus seconds, no minutes (control)",
+    "program": "d5.ts",
+    "exact": "7230"
+  },
+  {
+    "name": "invalid input with unknown characters returns -1 (control)",
+    "program": "d6.ts",
+    "exact": "-1"
+  },
+  {
+    "name": "minutes only, value over 59",
+    "program": "d7.ts",
+    "exact": "5400"
+  },
+  {
+    "name": "hours and minutes combined",
+    "program": "d8.ts",
+    "exact": "5400"
+  },
+  {
+    "name": "all three units combined",
+    "program": "d9.ts",
+    "exact": "3723"
+  },
+  {
+    "name": "empty input returns -1",
+    "program": "d10.ts",
+    "exact": "-1"
+  },
+  {
+    "name": "bare number with no unit returns -1",
+    "program": "d11.ts",
+    "exact": "-1"
+  },
+  {
+    "name": "trailing number with no unit returns -1",
+    "program": "d12.ts",
+    "exact": "-1"
+  }
+]

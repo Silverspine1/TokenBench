@@ -1,0 +1,9 @@
+{
+  "suite_id": "v1_0_rerun_base",
+  "description": "Re-run of irregular sonnet_base results: tobase + csvrow impl tasks.",
+  "tasks": [
+    "benchmark/external_repos/sharpts/tasks/sharpts_tobase_impl_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_csvrow_impl_001/manifest.json"
+  ],
+  "required_trials": 1
+}

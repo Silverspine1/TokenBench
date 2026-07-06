@@ -1,0 +1,56 @@
+{
+  "task_id": "vaultdesk_search_shape_001",
+  "repo_id": "vaultdesk-tauri",
+  "mode": "atomic",
+  "category": "contract",
+  "difficulty": "hard",
+  "prompt": "The backend still finds matches, but the list does not render. Preserve the documented search result shape. The frontend normaliser src/api/search.ts normalizeSearchResult(raw) must return an object shaped { id, title, path, snippet, score }, tolerating both the current and the older backend field names. The Rust search result must serialise with exactly the keys id, title, path, snippet, score. Result ordering must stay deterministic.",
+  "issue_title": "Search results appear empty in the desktop UI after a backend update",
+  "issue_body": "The backend still finds matches, but the list does not render. Preserve the documented search result shape. The frontend normaliser src/api/search.ts normalizeSearchResult(raw) must return an object shaped { id, title, path, snippet, score }, tolerating both the current and the older backend field names. The Rust search result must serialise with exactly the keys id, title, path, snippet, score. Result ordering must stay deterministic.",
+  "expected_behavior": [
+    "Rust search results serialise to id, title, path, snippet, score.",
+    "normalizeSearchResult maps both current and older backend shapes to the canonical object.",
+    "An empty result set normalises to an empty list.",
+    "Ordering is deterministic."
+  ],
+  "broken_snapshot": "benchmark/repos/vaultdesk-tauri/broken/vaultdesk_search_shape_001",
+  "gold_snapshot": "benchmark/repos/vaultdesk-tauri/gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py"
+  ],
+  "hidden_commands": [
+    "python -m pytest benchmark/tests/vaultdesk-tauri/vaultdesk_search_shape_001/hidden/test_hidden.py -q"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "src-tauri/src/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**",
+    "src-tauri/tests/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "output_stress": {
+    "enabled": true,
+    "expected_visible_output_bytes_min": 50000,
+    "expected_visible_output_bytes_max": 300000
+  },
+  "expected_failure_summary": "The Rust SearchResult serialises snippet under a renamed JSON key (preview), and the TypeScript normaliser was narrowed to read only the current key names, so canonical { id, title, path, snippet, score } is no longer produced on either side and the UI list renders empty.",
+  "skills_tested": [
+    "serde serialization contract",
+    "frontend normalization tolerance",
+    "cross-language shape alignment"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "Restore the snippet field to serialise under the key snippet (remove the serde rename), and restore the older-shape fallbacks in normalizeSearchResult so docId/name/location/preview/rank still map. Both sides must agree on the canonical shape."
+}

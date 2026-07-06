@@ -1,0 +1,37 @@
+{
+    "stripe_new_paid": {
+        "provider": "stripe",
+        "rawBody": "{\"id\":\"evt_stripe_new_1\",\"data\":{\"object\":{\"id\":\"pi_stripe_1\",\"amount\":2234,\"currency\":\"usd\",\"status\":\"succeeded\"}}}",
+        "headers": {
+            "Stripe-Signature": "999b25a0cc8d46e1f0155087738c88905eb3cb2ead1c7bb8b41d62082725b82a"
+        }
+    },
+    "stripe_old_paid": {
+        "provider": "stripe",
+        "rawBody": "{\"event_id\":\"evt_stripe_old_1\",\"payment_ref\":\"pi_stripe_2\",\"amount_cents\":2234,\"currency\":\"USD\",\"status\":\"Paid\"}",
+        "headers": {
+            "Stripe-Signature": "572fb0316b4abcbc311de53059536b428e99d6ca5497e7dd23a366a1329c8ad0"
+        }
+    },
+    "payfast_new_paid": {
+        "provider": "payfast",
+        "rawBody": "{\"m_payment_id\":\"mpf_new_1\",\"pf_payment_id\":\"pf_ref_1\",\"amount_gross\":\"99.00\",\"currency_code\":\"ZAR\",\"payment_status\":\"COMPLETE\"}",
+        "headers": {
+            "X-PayFast-Signature": "0af4b537187021a1e03e4c82569b04b539f89038661cff76741d862cbe916fe1"
+        }
+    },
+    "payfast_old_paid": {
+        "provider": "payfast",
+        "rawBody": "{\"payment_id\":\"mpf_old_1\",\"reference\":\"pf_ref_2\",\"amount\":\"99.00\",\"currency\":\"ZAR\",\"status\":\"completed\"}",
+        "headers": {
+            "X-PayFast-Signature": "64136966f1732c33cbb27387368d7142c8aa419973eb48f53539ad783a386ba1"
+        }
+    },
+    "stripe_failed": {
+        "provider": "stripe",
+        "rawBody": "{\"id\":\"evt_stripe_new_failed\",\"data\":{\"object\":{\"id\":\"pi_stripe_failed\",\"amount\":2234,\"currency\":\"usd\",\"status\":\"declined\"}}}",
+        "headers": {
+            "Stripe-Signature": "c54ae0ba88a9040bb69bfcd8f84691c8b41cc92b9d8b9e6086f8a2f98a33adee"
+        }
+    }
+}

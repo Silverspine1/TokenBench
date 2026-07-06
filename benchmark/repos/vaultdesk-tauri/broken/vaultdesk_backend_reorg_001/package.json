@@ -1,0 +1,10 @@
+{
+  "name": "vaultdesk-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "VaultDesk frontend API wrappers and state holders.",
+  "scripts": {
+    "test:visible": "node src/tests_visible/run_visible_tests.js"
+  }
+}

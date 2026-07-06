@@ -1,0 +1,76 @@
+{
+  "task_id": "paygate_provider_reorg_001",
+  "repo_id": "paygate-php-portal",
+  "mode": "atomic",
+  "category": "reorg",
+  "difficulty": "medium",
+  "prompt": "A previous legacy import left the payment-provider code flattened into a few unclear catch-all files (for example app/legacy/z_provider.php, app/legacy/a.php, app/legacy/b.php, and app/misc/pay_ops.php), each mixing several provider concerns together. The checkout and webhook flows still work, but the provider-specific logic is painful to maintain.\n\nReorganize the provider code into clear payment modules at these canonical paths: app/Payment/GatewayInterface.php (the gateway contract), app/Payment/StripeMockGateway.php and app/Payment/PayFastMockGateway.php (the two provider gateways), app/Payment/WebhookVerifier.php (signature verification), and app/Payment/GatewayEventNormalizer.php (provider payload normalization). Payment orchestration must remain under app/Services/, public/index.php must remain the entrypoint, and the existing checkout, webhook, and admin report behavior must not change.",
+  "issue_title": "Payment provider code is hard to maintain after a legacy import",
+  "issue_body": "A previous legacy import left the payment-provider code flattened into a few unclear catch-all files (for example app/legacy/z_provider.php, app/legacy/a.php, app/legacy/b.php, and app/misc/pay_ops.php), each mixing several provider concerns together. The checkout and webhook flows still work, but the provider-specific logic is painful to maintain.\n\nReorganize the provider code into clear payment modules at these canonical paths: app/Payment/GatewayInterface.php (the gateway contract), app/Payment/StripeMockGateway.php and app/Payment/PayFastMockGateway.php (the two provider gateways), app/Payment/WebhookVerifier.php (signature verification), and app/Payment/GatewayEventNormalizer.php (provider payload normalization). Payment orchestration must remain under app/Services/, public/index.php must remain the entrypoint, and the existing checkout, webhook, and admin report behavior must not change.",
+  "expected_behavior": [
+    "Provider code lives under app/Payment/ at the canonical module paths, autoloaded by PSR-4.",
+    "Payment orchestration remains under app/Services/ and public/index.php remains the entrypoint.",
+    "Checkout, Stripe-like webhooks, PayFast-like webhooks, and the admin payment report all behave exactly as before.",
+    "The flattened legacy catch-all files are gone."
+  ],
+  "broken_snapshot": "benchmark/repos/paygate-php-portal/broken/paygate_provider_reorg_001",
+  "gold_snapshot": "benchmark/repos/paygate-php-portal/gold",
+  "visible_commands": [
+    "python tests_visible/run_reorg_smoke.py",
+    "python tests_visible/run_output_stress.py"
+  ],
+  "output_stress": {
+    "enabled": true,
+    "expected_visible_output_bytes_min": 50000,
+    "expected_visible_output_bytes_max": 300000
+  },
+  "hidden_commands": [
+    "python -m pytest benchmark/tests/paygate-php-portal/paygate_provider_reorg_001/hidden/test_hidden.py -q"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "app/**",
+    "public/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "structure_contract": {
+    "required_paths": [
+      "app/Payment/GatewayInterface.php",
+      "app/Payment/StripeMockGateway.php",
+      "app/Payment/PayFastMockGateway.php",
+      "app/Payment/WebhookVerifier.php",
+      "app/Payment/GatewayEventNormalizer.php"
+    ],
+    "forbidden_paths": [
+      "app/legacy/a.php",
+      "app/legacy/b.php",
+      "app/legacy/z_provider.php"
+    ],
+    "compatibility_imports": [
+      "public/index.php"
+    ],
+    "public_entrypoints": [
+      "public/index.php"
+    ]
+  },
+  "expected_failure_summary": "Provider concerns (gateway contract, the two gateways, the webhook verifier, the event normalizer) are flattened into opaque legacy catch-all files loaded by an explicit bootstrap shim, so they cannot be imported or maintained at their canonical App\\Payment module paths.",
+  "skills_tested": [
+    "module decomposition",
+    "PSR-4 autoload rewiring",
+    "behavior preservation"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 5,
+  "expected_changed_files_max": 16,
+  "task_author_notes": "Reorg. Broken flattens the five App\\Payment classes into app/legacy/{z_provider,a,b}.php + app/misc/pay_ops.php, with a bootstrap.php shim that require()s them since they are off the PSR-4 path. Restoring the five canonical app/Payment/*.php modules (gold already has them) and removing the legacy files + shim satisfies the structure contract and the hidden behaviour checks, which gate each behaviour on the corresponding canonical file existing. Long-output candidate: run_output_stress.py emits ~190 KB."
+}

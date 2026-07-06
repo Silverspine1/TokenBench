@@ -1,0 +1,48 @@
+diff --git a/stdlib/core/tbx.go b/stdlib/core/tbx.go
+new file mode 100644
+index 0000000..1108487
+--- /dev/null
++++ b/stdlib/core/tbx.go
+@@ -0,0 +1,42 @@
++package core
++
++import (
++	"reflect"
++	"strconv"
++	"strings"
++
++	"github.com/mvm-sh/mvm/stdlib"
++)
++
++// Package-local helpers for rendering integers in a human-friendly form.
++
++// tbxCommafy renders an integer with comma thousands separators. The digits are
++// grouped in threes counted from the right, e.g. 1000 -> "1,000" and 1234567 ->
++// "1,234,567". Negative values keep a single leading minus sign in front of the
++// grouped digits, e.g. -1500 -> "-1,500". Zero renders as "0".
++func tbxCommafy(n int) string {
++	if n < 0 {
++		return tbxGroup(strconv.Itoa(-n))
++	}
++	return tbxGroup(strconv.Itoa(n))
++}
++
++// tbxGroup inserts a comma into a string of decimal digits so the digits are
++// split into groups of three. The boundary is decided from the count walked so
++// far from the left edge of the string.
++func tbxGroup(s string) string {
++	var b strings.Builder
++	for i := 0; i < len(s); i++ {
++		if i > 0 && i%3 == 0 {
++			b.WriteByte(',')
++		}
++		b.WriteByte(s[i])
++	}
++	return b.String()
++}
++
++func init() {
++	stdlib.Values["tbx"] = map[string]reflect.Value{
++		"Commafy": reflect.ValueOf(tbxCommafy),
++	}
++}

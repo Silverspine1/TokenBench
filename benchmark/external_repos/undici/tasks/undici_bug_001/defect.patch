@@ -1,0 +1,13 @@
+--- a/lib/handler/redirect-handler.js
++++ b/lib/handler/redirect-handler.js
+@@ -204,9 +204,7 @@ function cleanRequestHeaders (headers, removeContent, unknownOrigin, stripHeader
+     const entries = util.hasSafeIterator(headers) ? headers : Object.entries(headers)
+
+     for (const [key, value] of entries) {
+-      if (!shouldRemoveHeader(key, removeContent, unknownOrigin, stripHeaders, stripHeadersOnCrossOrigin)) {
+-        ret.push(key, value)
+-      }
++      ret.push(key, value)
+     }
+   } else {
+     assert(headers == null, 'headers must be an object or an array')

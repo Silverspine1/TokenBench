@@ -1,0 +1,32 @@
+{
+  "task_id": "paygate_checkout_retry_001",
+  "repo_id": "paygate-php-portal",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "Customers who retry checkout after a failed payment sometimes see a stale pending order or a duplicate invoice. Retrying checkout should keep the cart stable, avoid duplicate invoices, and allow a fresh payment attempt when needed.",
+  "issue_title": "Retrying checkout after a failed payment shows a stale pending order",
+  "issue_body": "Customers who retry checkout after a failed payment sometimes see a stale pending order or a duplicate invoice. Retrying checkout should keep the cart stable, avoid duplicate invoices, and allow a fresh payment attempt when needed.",
+  "expected_behavior": [
+    "A same-cart retry reuses the existing pending order and its invoice.",
+    "A changed-cart retry creates a new order.",
+    "A failed attempt does not block a later successful payment.",
+    "There is at most one invoice per order."
+  ],
+  "broken_snapshot": "benchmark/repos/paygate-php-portal/broken/paygate_checkout_retry_001",
+  "gold_snapshot": "benchmark/repos/paygate-php-portal/gold",
+  "visible_commands": ["python tests_visible/run_visible.py"],
+  "hidden_commands": ["python -m pytest benchmark/tests/paygate-php-portal/paygate_checkout_retry_001/hidden/test_hidden.py -q"],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": ["app/**", "public/**"],
+  "ignored_paths": ["docs/**", "fixtures/**"],
+  "forbidden_paths": ["benchmark/**", "tests/**", ".tokenbench/**"],
+  "expected_failure_summary": "CheckoutService::checkout no longer looks up an existing pending order with a matching cart fingerprint for the session, so a same-cart retry always creates a fresh order and a second invoice.",
+  "skills_tested": ["checkout idempotency", "fingerprint reuse", "duplicate prevention"],
+  "root_cause_files": ["app/Services/CheckoutService.php"],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 2,
+  "task_author_notes": "Restore the reuse loop over db->sessionOrders[sessionId] that returns an existing PENDING order whose orderFingerprints entry matches the cart fingerprint. same_cart_retry_reuses_order and invoice_count_stable fail on broken; others pass."
+}

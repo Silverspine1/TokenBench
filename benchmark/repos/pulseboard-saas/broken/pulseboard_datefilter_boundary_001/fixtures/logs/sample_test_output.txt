@@ -1,0 +1,7 @@
+$ node tests_visible/run_visible_tests.js
+contract: visible OK
+datefilter: visible OK
+pagination: visible OK
+export: visible OK
+summary: visible OK
+all visible checks passed

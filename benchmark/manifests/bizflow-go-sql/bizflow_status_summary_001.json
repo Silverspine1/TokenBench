@@ -1,0 +1,47 @@
+{
+  "task_id": "bizflow_status_summary_001",
+  "repo_id": "bizflow-go-sql",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "The per-status invoice summary a tenant sees does not add up. Each row is meant to tell the business, for one status, how many of its invoices are in that state and what they come to in money - but the counts are wildly low, as if whole groups of invoices were being collapsed down to a single one, and the money figures are puffed up by invoices that belong to other businesses entirely. When a customer cross-checks the summary against their own books, the numbers simply do not match what they actually have.\n\nThe summary has to be a trustworthy breakdown of this one tenant's invoices.\n\nInvariants:\n- The summary describes exactly this tenant's invoices and no one else's.\n- Every status reflects the true number of the tenant's invoices in that state, not merely that some exist, and only states the tenant actually has show up at all.\n- The breakdown reconciles with the whole: adding the rows back together recovers the tenant's own invoice count and overall invoice total, with nothing missing and nothing extra.\n\nPreserve existing public fields and unrelated behavior.",
+  "issue_title": "Invoice status summary does not reconcile and mixes in other tenants",
+  "issue_body": "The per-status invoice summary a tenant sees does not add up. Each row is meant to tell the business, for one status, how many of its invoices are in that state and what they come to in money - but the counts are wildly low, as if whole groups of invoices were being collapsed down to a single one, and the money figures are puffed up by invoices that belong to other businesses entirely. When a customer cross-checks the summary against their own books, the numbers simply do not match what they actually have.\n\nThe summary has to be a trustworthy breakdown of this one tenant's invoices.\n\nInvariants:\n- The summary describes exactly this tenant's invoices and no one else's.\n- Every status reflects the true number of the tenant's invoices in that state, not merely that some exist, and only states the tenant actually has show up at all.\n- The breakdown reconciles with the whole: adding the rows back together recovers the tenant's own invoice count and overall invoice total, with nothing missing and nothing extra.\n\nPreserve existing public fields and unrelated behavior.",
+  "broken_snapshot": "benchmark/repos/bizflow-go-sql/broken/bizflow_status_summary_001",
+  "gold_snapshot": "benchmark/repos/bizflow-go-sql/gold",
+  "visible_commands": [
+    "go test ./tests_visible/..."
+  ],
+  "hidden_commands": [
+    "python benchmark/tests/bizflow-go-sql/bizflow_status_summary_001/hidden/run_hidden.py"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "internal/**",
+    "migrations/**",
+    "cmd/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The grouping helper never increments the per-key count after the first row, so every status reports a count of one, and the status summary reads all invoices instead of scoping them to the tenant, so other tenants' invoices inflate the totals.",
+  "skills_tested": [
+    "grouping and aggregation",
+    "tenant scoping",
+    "cross-file tracing"
+  ],
+  "root_cause_files": [
+    "internal/store/query.go",
+    "internal/repository/status.go"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "Both files must change. The grouping helper must increment the count for each additional row sharing a key, and the status summary must scope invoices to the tenant before grouping. Fixing only the grouping count still lets other tenants' invoices in; fixing only the tenant scoping still reports a count of one per status. The reconciliation and exact-count contract is documented in docs/reporting_rules.md: a surface fix that only adds the tenant filter (leaving the grouping helper collapsing each status to a count of one) passes the scoping cases but fails the hidden exact-count and count-reconciliation checks."
+}

@@ -1,0 +1,47 @@
+{
+  "task_id": "bizflow_invoice_pagination_001",
+  "repo_id": "bizflow-go-sql",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "Paging through a tenant's invoice list is unreliable. As users click from one page to the next, some invoices never show up at all - they fall through the cracks between pages - and the invoices do not come back in the order users expect. The trouble is worst right at the edges between pages, and when several invoices were issued on the same day their order jumps around from one viewing to the next.\n\nWalking the list from the first page to the last should be a faithful, stable tour of every one of the tenant's invoices.\n\nInvariants:\n- The list has one definite, stable order, and invoices that look equal by the obvious measure still always come back in the same order.\n- Following the pages from the start reaches every one of the tenant's invoices exactly once - nothing dropped at a page edge, nothing shown twice, and no stray empty page tacked on at the end even when the invoices divide evenly into pages.\n- Only the tenant's own invoices appear.\n\nPreserve existing public fields and unrelated behavior.",
+  "issue_title": "Invoice list pages drop invoices and shuffle their order",
+  "issue_body": "Paging through a tenant's invoice list is unreliable. As users click from one page to the next, some invoices never show up at all - they fall through the cracks between pages - and the invoices do not come back in the order users expect. The trouble is worst right at the edges between pages, and when several invoices were issued on the same day their order jumps around from one viewing to the next.\n\nWalking the list from the first page to the last should be a faithful, stable tour of every one of the tenant's invoices.\n\nInvariants:\n- The list has one definite, stable order, and invoices that look equal by the obvious measure still always come back in the same order.\n- Following the pages from the start reaches every one of the tenant's invoices exactly once - nothing dropped at a page edge, nothing shown twice, and no stray empty page tacked on at the end even when the invoices divide evenly into pages.\n- Only the tenant's own invoices appear.\n\nPreserve existing public fields and unrelated behavior.",
+  "broken_snapshot": "benchmark/repos/bizflow-go-sql/broken/bizflow_invoice_pagination_001",
+  "gold_snapshot": "benchmark/repos/bizflow-go-sql/gold",
+  "visible_commands": [
+    "go test ./tests_visible/..."
+  ],
+  "hidden_commands": [
+    "python benchmark/tests/bizflow-go-sql/bizflow_invoice_pagination_001/hidden/run_hidden.py"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "internal/**",
+    "migrations/**",
+    "cmd/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The paging helper advances its next cursor one past the end of the returned slice, so a row is skipped at every page boundary, and the invoice paging method does not order the rows before slicing, so the list comes back in insertion order.",
+  "skills_tested": [
+    "pagination semantics",
+    "ordering",
+    "cross-file tracing"
+  ],
+  "root_cause_files": [
+    "internal/store/query.go",
+    "internal/repository/invoices.go"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 3,
+  "task_author_notes": "Both files must change. The paging helper's next cursor must point at the first row not yet returned (not one past it), and the invoice paging method must order rows by issued_at then id before slicing. Fixing only the cursor leaves the list out of order; fixing only the ordering still skips a row at each page boundary. Second facet (documented in docs/api_contracts.md): the order must break issued_at ties by id, and paging must end cleanly when the row count is an exact multiple of the page size (no extra empty page). A surface fix that repairs the cursor and orders by issued_at only - omitting the id tie-break - passes the original cases but fails the hidden same-date ordering check."
+}

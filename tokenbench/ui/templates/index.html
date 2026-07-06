@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Suites · TokenBench Manual IDE{% endblock %}
+{% block content %}
+<h1>Suite dashboard</h1>
+<p class="muted">Pick a suite to see its task queue. Manual runs keep the same
+manifests, hidden tests, and scoring as automated runs.</p>
+<table>
+  <thead>
+    <tr><th>Suite</th><th>Description</th><th>Tasks</th><th>Trials</th><th>Official</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for s in suites %}
+    <tr>
+      <td><code>{{ s.suite_id }}</code></td>
+      <td>{{ s.description }}</td>
+      <td>{{ s.task_count }}</td>
+      <td>{{ s.required_trials }}</td>
+      <td>{{ "yes" if s.official else "no" }}</td>
+      <td><a class="btn" href="/queue/{{ s.suite_id }}">Open queue</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,20 @@
+{
+  "suite_id": "v0_7_reorg_impl",
+  "description": "V0.7 (unofficial, in progress): repo-reorganization and staged-implementation tasks. Reorg tasks score against a deterministic structure contract; staged groups run Stage 2 on the Stage 1 candidate and measure extension friction.",
+  "tasks": [
+    "benchmark/manifests/pulseboard-saas/pulseboard_reorg_modules_001.json",
+    "benchmark/manifests/pulseboard-saas/pulseboard_adjustments_stage_1.json",
+    "benchmark/manifests/pulseboard-saas/pulseboard_adjustments_stage_2.json",
+    "benchmark/manifests/marketlab-ml/marketlab_reorg_layout_001.json",
+    "benchmark/manifests/marketlab-ml/marketlab_walkforward_stage_1.json",
+    "benchmark/manifests/marketlab-ml/marketlab_walkforward_stage_2.json",
+    "benchmark/manifests/logforge-cpp/logforge_reorg_layout_001.json",
+    "benchmark/manifests/logforge-cpp/logforge_dialect_stage_1.json",
+    "benchmark/manifests/logforge-cpp/logforge_dialect_stage_2.json",
+    "benchmark/manifests/bizflow-go-sql/bizflow_reorg_service_001.json",
+    "benchmark/manifests/bizflow-go-sql/bizflow_holds_stage_1.json",
+    "benchmark/manifests/bizflow-go-sql/bizflow_holds_stage_2.json"
+  ],
+  "required_trials": 1,
+  "official": false
+}

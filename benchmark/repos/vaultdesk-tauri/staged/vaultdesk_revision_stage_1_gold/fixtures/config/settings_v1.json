@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "darkMode": true,
+  "fontSize": 14,
+  "customPlugin": {
+    "keep": 42
+  }
+}

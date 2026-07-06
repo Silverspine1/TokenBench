@@ -1,0 +1,53 @@
+{
+  "task_id": "vaultdesk_settings_migrate_001",
+  "repo_id": "vaultdesk-tauri",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "After upgrading from an older app version, some user settings are lost. Existing settings should migrate forward without dropping fields the frontend still needs.",
+  "issue_title": "User settings sometimes reset after upgrading from an older version",
+  "issue_body": "After upgrading from an older app version, some user settings are lost. Existing settings should migrate forward without dropping fields the frontend still needs.",
+  "expected_behavior": [
+    "Version 1 settings migrate to the current version.",
+    "Fields not known to the migration are preserved.",
+    "A settings document already at the current version is left unchanged.",
+    "Optional fields that are absent receive their default."
+  ],
+  "broken_snapshot": "benchmark/repos/vaultdesk-tauri/broken/vaultdesk_settings_migrate_001",
+  "gold_snapshot": "benchmark/repos/vaultdesk-tauri/gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py"
+  ],
+  "hidden_commands": [
+    "python -m pytest benchmark/tests/vaultdesk-tauri/vaultdesk_settings_migrate_001/hidden/test_hidden.py -q"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "src-tauri/src/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**",
+    "src-tauri/tests/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "Two coupled defects in migrate(): it rebuilds a fresh map containing only version, theme and vault_root and returns it for every document with no early return for an already-current document (discarding every unknown field on a v1 migration and rewriting an already-current document so it is no longer byte-equal); and theme derivation ignores darkMode, always defaulting an absent theme to \"light\" instead of deriving \"dark\" from darkMode==true.",
+  "skills_tested": [
+    "forward-compatible migration",
+    "unknown-field preservation",
+    "idempotent already-current handling"
+  ],
+  "root_cause_files": [
+    "src-tauri/src/config/migrate.rs"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 2,
+  "task_author_notes": "Migrate in place on the existing map: derive theme from darkMode (dark when darkMode==true) only when theme is absent, drop the legacy darkMode key, ensure vault_root, set version, and keep every other key. Return an already-current document unchanged."
+}

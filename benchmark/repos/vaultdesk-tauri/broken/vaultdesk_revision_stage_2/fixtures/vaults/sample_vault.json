@@ -1,0 +1,8 @@
+{
+  "root": "/vault/data",
+  "entries": [
+    { "path": "notes/alpha.md", "name": "alpha.md", "size": 128 },
+    { "path": "notes/sub/beta.md", "name": "beta.md", "size": 256 },
+    { "path": "readme.md", "name": "readme.md", "size": 64 }
+  ]
+}

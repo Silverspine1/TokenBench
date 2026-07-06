@@ -1,0 +1,22 @@
+[
+  {
+    "id": "inv-1001", "tenant_id": "t_acme", "customer": "North Hardware",
+    "status": "paid", "issued_at": "2026-01-05",
+    "lines": [ { "sku": "WIDGET", "quantity": 10, "unit_cents": 500 } ]
+  },
+  {
+    "id": "inv-1002", "tenant_id": "t_acme", "customer": "South Builders",
+    "status": "open", "issued_at": "2026-01-09",
+    "lines": [ { "sku": "GADGET", "quantity": 4, "unit_cents": 2500 } ]
+  },
+  {
+    "id": "inv-1003", "tenant_id": "t_acme", "customer": "East Supply",
+    "status": "open", "issued_at": "2026-01-12",
+    "lines": [ { "sku": "WIDGET", "quantity": 6, "unit_cents": 500 } ]
+  },
+  {
+    "id": "inv-2001", "tenant_id": "t_globex", "customer": "West Depot",
+    "status": "paid", "issued_at": "2026-01-07",
+    "lines": [ { "sku": "SPROCKET", "quantity": 8, "unit_cents": 1250 } ]
+  }
+]

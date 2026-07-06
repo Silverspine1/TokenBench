@@ -1,0 +1,42 @@
+{
+  "task_id": "pulseboard_invoice_export_001",
+  "repo_id": "pulseboard-saas",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "medium",
+  "prompt": "Fix the invoice CSV export so it only exports invoices matching the requested filter.",
+  "broken_snapshot": "benchmark/repos/pulseboard-saas/broken/pulseboard_invoice_export_001",
+  "gold_snapshot": "benchmark/repos/pulseboard-saas/gold",
+  "visible_commands": [
+    "node tests_visible/run_visible_tests.js"
+  ],
+  "hidden_commands": [
+    "node benchmark/tests/pulseboard-saas/pulseboard_invoice_export_001/hidden/test_hidden_export.js"
+  ],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "app/**"
+  ],
+  "ignored_paths": [
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "selectInvoices ignores the filter and returns every invoice.",
+  "skills_tested": [
+    "filtering logic",
+    "data export correctness"
+  ],
+  "root_cause_files": [
+    "src/export.js"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 1,
+  "task_author_notes": "Correct fix: when filter.status is set, select only matching invoices; no filter returns all."
+}

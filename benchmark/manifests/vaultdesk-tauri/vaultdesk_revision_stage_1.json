@@ -1,0 +1,54 @@
+{
+  "task_id": "vaultdesk_revision_stage_1",
+  "repo_id": "vaultdesk-tauri",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "medium",
+  "stage": 1,
+  "stage_group_id": "vaultdesk_revision_conflicts",
+  "next_stage_task_id": "vaultdesk_revision_stage_2",
+  "prompt": "Users need note revision history. Add revision history for notes so that, after saving, users can inspect previous content versions of a note. Expose three backend functions: save_note_revision(path, content) records the current content as a new revision; list_note_revisions(path) returns every recorded revision for a note; and get_note_revision(path, revisionId) returns a specific past revision. Each revision must be individually addressable by a stable revision id and must keep its content. Normal note save and load behaviour must continue to work exactly as before.\n\nImplement these with the following exact Rust signatures and module paths (the public crate name is `vaultdesk`). In module `vaultdesk::commands::revisions`: `pub fn save_note_revision(store: &mut RevisionStore, path: &str, content: &str) -> Revision`; `pub fn list_note_revisions(store: &RevisionStore, path: &str) -> Vec<Revision>` returning the note's revisions in chronological order (index 0 is the oldest); `pub fn get_note_revision(store: &RevisionStore, path: &str, revision_id: u64) -> Option<Revision>`. Define `pub struct Revision` with public fields `revision_id: u64`, `content: String`, and `meta: RevisionMeta` (all clonable). Define `pub struct RevisionMeta` with public fields `byte_len: u64` (the content length in bytes when the revision was recorded) and `line_count: u64` (number of newline-separated lines, counting a trailing newline as terminating the final line, and 0 for empty content); the metadata is derived purely from the content, never from a wall clock. Provide the store at `vaultdesk::fs::revision_store::RevisionStore` with `pub fn new() -> RevisionStore`, `pub fn current_revision_id(&self, path: &str) -> u64` (0 when a note has no revisions), and `pub fn current(&self, path: &str) -> Option<&Revision>` (the latest stored revision for a note, or None); revision ids are monotonic per note starting at 1 (no timestamps). Keep these names, paths, and signatures exactly so existing callers compile.",
+  "issue_title": "Users need note revision history.",
+  "issue_body": "Users need note revision history. Add revision history for notes so that, after saving, users can inspect previous content versions of a note. Expose three backend functions: save_note_revision(path, content) records the current content as a new revision; list_note_revisions(path) returns every recorded revision for a note; and get_note_revision(path, revisionId) returns a specific past revision. Each revision must be individually addressable by a stable revision id and must keep its content. Normal note save and load behaviour must continue to work exactly as before.\n\nImplement these with the following exact Rust signatures and module paths (the public crate name is `vaultdesk`). In module `vaultdesk::commands::revisions`: `pub fn save_note_revision(store: &mut RevisionStore, path: &str, content: &str) -> Revision`; `pub fn list_note_revisions(store: &RevisionStore, path: &str) -> Vec<Revision>` returning the note's revisions in chronological order (index 0 is the oldest); `pub fn get_note_revision(store: &RevisionStore, path: &str, revision_id: u64) -> Option<Revision>`. Define `pub struct Revision` with public fields `revision_id: u64`, `content: String`, and `meta: RevisionMeta` (all clonable). Define `pub struct RevisionMeta` with public fields `byte_len: u64` (the content length in bytes when the revision was recorded) and `line_count: u64` (number of newline-separated lines, counting a trailing newline as terminating the final line, and 0 for empty content); the metadata is derived purely from the content, never from a wall clock. Provide the store at `vaultdesk::fs::revision_store::RevisionStore` with `pub fn new() -> RevisionStore`, `pub fn current_revision_id(&self, path: &str) -> u64` (0 when a note has no revisions), and `pub fn current(&self, path: &str) -> Option<&Revision>` (the latest stored revision for a note, or None); revision ids are monotonic per note starting at 1 (no timestamps). Keep these names, paths, and signatures exactly so existing callers compile.",
+  "expected_behavior": [
+    "Saving a note's content records a new revision with a stable revision id and keeps the content.",
+    "Listing a note's revisions returns every recorded version in a deterministic order.",
+    "A specific past revision can be fetched by its revision id.",
+    "Ordinary note save and load behaviour is unchanged for notes that have no revision history."
+  ],
+  "broken_snapshot": "benchmark/repos/vaultdesk-tauri/broken/vaultdesk_revision_stage_1",
+  "gold_snapshot": "benchmark/repos/vaultdesk-tauri/staged/vaultdesk_revision_stage_1_gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py"
+  ],
+  "hidden_commands": [
+    "python -m pytest benchmark/tests/vaultdesk-tauri/vaultdesk_revision_stage_1/hidden/test_hidden.py -q"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "src-tauri/src/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**",
+    "src-tauri/tests/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The baseline has no revision-history surface at all: save_note_revision, list_note_revisions, and get_note_revision do not exist, so previous content versions of a note cannot be recorded, listed, or fetched.",
+  "skills_tested": [
+    "feature implementation",
+    "addressable revision modelling",
+    "deterministic ordering"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 4,
+  "expected_changed_files_max": 8,
+  "task_author_notes": "Stage 1 of the vaultdesk_revision_conflicts group. Reference adds a Revision domain type (domain/revision.rs) with a content-derived metadata block, a RevisionStore (fs/revision_store.rs) holding an ordered per-path history keyed by a single monotonic counter, and three command functions (commands/revisions.rs). Revision ids are explicit counters, never timestamps. A clean addressable model (current revision identifiable, any past revision fetchable by id) makes Stage 2 conflict detection a direct extension; an append-only opaque blob forces a Stage 2 rewrite (measured as extension friction)."
+}

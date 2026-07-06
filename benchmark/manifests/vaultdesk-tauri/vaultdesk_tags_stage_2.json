@@ -1,0 +1,58 @@
+{
+  "task_id": "vaultdesk_tags_stage_2",
+  "repo_id": "vaultdesk-tauri",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "hard",
+  "stage": 2,
+  "stage_group_id": "vaultdesk_tags_saved_searches",
+  "previous_stage_task_id": "vaultdesk_tags_stage_1",
+  "input_source": "previous_candidate",
+  "prompt": "Users need saved searches that can include tags. Let users save a common search by name and re-run it later, where a saved query may combine free text and a set of tags. This builds on the Stage 1 tagging crate (TagStore, SearchIndex, search_by_tag, SearchResult).\n\nThe hidden harness compiles against the crate's public API by exact name, path, and signature, so implement EXACTLY this surface (no renames, no signature changes).\n\nRust query value (re-exported at the crate root as `vaultdesk::SearchQuery`): `struct SearchQuery` with public fields exactly `text: String` and `tags: Vec<String>`, `#[derive(Serialize, Deserialize)]`, with these constructors used by the harness:\n- `pub fn text_only(text: &str) -> SearchQuery`\n- `pub fn tags_only(tags: &[&str]) -> SearchQuery`\n- `pub fn new(text: &str, tags: &[&str]) -> SearchQuery`\n\nRust saved-search store (re-exported as `vaultdesk::SavedSearchStore`): `struct SavedSearchStore` with `pub fn new() -> SavedSearchStore`. It stores query definitions only (no cached results), so a saved search re-evaluates against the current index and tag state on every run.\n\nRust saved-search commands (free functions in `commands::saved_search`, re-exported at the crate root), with EXACTLY these signatures:\n- `pub fn save_search(store: &mut SavedSearchStore, name: &str, query: SearchQuery) -> bool` (`vaultdesk::save_search`) — saves/replaces a named query; an empty name is rejected.\n- `pub fn run_saved_search(store: &SavedSearchStore, index: &SearchIndex, tags: &TagStore, name: &str) -> Vec<SearchResult>` (`vaultdesk::run_saved_search`) — re-runs the named query; an unknown name yields an empty Vec.\n\nSemantics: a text-only query behaves like text search; a tag-only query behaves like tag search; a combined query returns only notes that match the text AND carry every listed tag. Tag changes after saving are reflected on the next run (a removed tag drops the note). Results keep the canonical `SearchResult` shape and ordering (score descending, then id ascending), serializing to keys `{ id, title, path, snippet, score }` and nothing else.\n\nDo NOT change the Stage 1 tag command results: `vaultdesk::create_tag`, `vaultdesk::assign_tag_to_note`, `vaultdesk::remove_tag_from_note`, `vaultdesk::search_by_tag`, and `vaultdesk::search` must behave exactly as before.\n\nFrontend (TypeScript): note that this project runs under Node's native type stripping, so frontend imports have two hard requirements, exactly as the existing files do. (1) Every relative import between frontend modules MUST include the explicit `.ts` file extension. (2) Any type-only import (an interface or type alias such as `SearchResultView` or `Invoker`) MUST carry the `type` modifier, because type-stripping removes it from the runtime exports; for example `import { normalizeSearchResults, type SearchResultView, type Invoker } from \"./search.ts\";`. In `src/api/savedSearch.ts`, add and export `export function saveSearch(invoke: Invoker, name: string, query: any): boolean` that calls `invoke(\"save_search\", { name, query })` with `query` normalized to `{ text: string, tags: string[] }`, and `export function runSavedSearch(invoke: Invoker, name: string): SearchResultView[]` that calls `invoke(\"run_saved_search\", { name })` and normalizes the raw list into the canonical `{ id, title, path, snippet, score }` shape. The node harness imports `{ saveSearch, runSavedSearch }` from `src/api/savedSearch.ts` by those exact names.",
+  "issue_title": "Users need saved searches that can include tags.",
+  "issue_body": "People keep re-typing the same searches. Let them save a search by name and run it again later. A saved search should be able to mix free text and tags, reusing the tagging and search behavior already in place without changing how the tag commands themselves behave.\n\nThe hidden harness compiles against the crate's public API by exact name, path, and signature, so implement EXACTLY this surface (no renames, no signature changes).\n\nRust query value (re-exported at the crate root as `vaultdesk::SearchQuery`): `struct SearchQuery` with public fields exactly `text: String` and `tags: Vec<String>`, `#[derive(Serialize, Deserialize)]`, with these constructors used by the harness:\n- `pub fn text_only(text: &str) -> SearchQuery`\n- `pub fn tags_only(tags: &[&str]) -> SearchQuery`\n- `pub fn new(text: &str, tags: &[&str]) -> SearchQuery`\n\nRust saved-search store (re-exported as `vaultdesk::SavedSearchStore`): `struct SavedSearchStore` with `pub fn new() -> SavedSearchStore`. It stores query definitions only (no cached results), so a saved search re-evaluates against the current index and tag state on every run.\n\nRust saved-search commands (free functions in `commands::saved_search`, re-exported at the crate root), with EXACTLY these signatures:\n- `pub fn save_search(store: &mut SavedSearchStore, name: &str, query: SearchQuery) -> bool` (`vaultdesk::save_search`) — saves/replaces a named query; an empty name is rejected.\n- `pub fn run_saved_search(store: &SavedSearchStore, index: &SearchIndex, tags: &TagStore, name: &str) -> Vec<SearchResult>` (`vaultdesk::run_saved_search`) — re-runs the named query; an unknown name yields an empty Vec.\n\nSemantics: a text-only query behaves like text search; a tag-only query behaves like tag search; a combined query returns only notes that match the text AND carry every listed tag. Tag changes after saving are reflected on the next run (a removed tag drops the note). Results keep the canonical `SearchResult` shape and ordering (score descending, then id ascending), serializing to keys `{ id, title, path, snippet, score }` and nothing else.\n\nDo NOT change the Stage 1 tag command results: `vaultdesk::create_tag`, `vaultdesk::assign_tag_to_note`, `vaultdesk::remove_tag_from_note`, `vaultdesk::search_by_tag`, and `vaultdesk::search` must behave exactly as before.\n\nFrontend (TypeScript): note that this project runs under Node's native type stripping, so frontend imports have two hard requirements, exactly as the existing files do. (1) Every relative import between frontend modules MUST include the explicit `.ts` file extension. (2) Any type-only import (an interface or type alias such as `SearchResultView` or `Invoker`) MUST carry the `type` modifier, because type-stripping removes it from the runtime exports; for example `import { normalizeSearchResults, type SearchResultView, type Invoker } from \"./search.ts\";`. In `src/api/savedSearch.ts`, add and export `export function saveSearch(invoke: Invoker, name: string, query: any): boolean` that calls `invoke(\"save_search\", { name, query })` with `query` normalized to `{ text: string, tags: string[] }`, and `export function runSavedSearch(invoke: Invoker, name: string): SearchResultView[]` that calls `invoke(\"run_saved_search\", { name })` and normalizes the raw list into the canonical `{ id, title, path, snippet, score }` shape. The node harness imports `{ saveSearch, runSavedSearch }` from `src/api/savedSearch.ts` by those exact names.",
+  "expected_behavior": [
+    "save_search stores a named query of text plus tags; run_saved_search re-runs it by name.",
+    "A saved text-only query behaves like text search; a saved tag-only query behaves like tag search.",
+    "A combined query returns only notes that match the text and carry every listed tag.",
+    "Running a saved search reflects later tag changes (a removed tag drops the note on the next run).",
+    "Saved-search results keep the canonical { id, title, path, snippet, score } shape.",
+    "The Stage 1 tag command results (create/assign/remove/search_by_tag) are unchanged.",
+    "Named entry points (exact): vaultdesk::SearchQuery { text: String, tags: Vec<String> } with constructors text_only(&str), tags_only(&[&str]), new(&str, &[&str]); vaultdesk::SavedSearchStore (SavedSearchStore::new()); vaultdesk::save_search(store: &mut SavedSearchStore, name: &str, query: SearchQuery) -> bool; vaultdesk::run_saved_search(store: &SavedSearchStore, index: &SearchIndex, tags: &TagStore, name: &str) -> Vec<SearchResult>; unchanged Stage 1 vaultdesk::{create_tag, assign_tag_to_note, remove_tag_from_note, search_by_tag, search}; SearchResult fields { id, title, path, snippet, score }; TS exports saveSearch(invoke, name, query) and runSavedSearch(invoke, name) in src/api/savedSearch.ts."
+  ],
+  "broken_snapshot": "benchmark/repos/vaultdesk-tauri/broken/vaultdesk_tags_stage_2",
+  "gold_snapshot": "benchmark/repos/vaultdesk-tauri/staged/vaultdesk_tags_stage_2_gold",
+  "visible_commands": [
+    "python tests_visible/run_visible.py"
+  ],
+  "hidden_commands": [
+    "python -m pytest benchmark/tests/vaultdesk-tauri/vaultdesk_tags_stage_2/hidden/test_hidden.py -q"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "src/**",
+    "src-tauri/src/**"
+  ],
+  "ignored_paths": [
+    "docs/**",
+    "fixtures/**",
+    "src-tauri/tests/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    "tests/**",
+    ".tokenbench/**"
+  ],
+  "expected_failure_summary": "The Stage 1 baseline has tagging but no saved-search surface: there is no saved-search store, no save_search/run_saved_search commands carrying a text+tags query, and no frontend wrappers, so common searches cannot be saved or re-run.",
+  "skills_tested": [
+    "feature extension",
+    "reusing an existing abstraction",
+    "query composition"
+  ],
+  "root_cause_files": [],
+  "expected_changed_files_min": 4,
+  "expected_changed_files_max": 9,
+  "task_author_notes": "Stage 2 of the vaultdesk_tags_saved_searches group. Runs on the agent's Stage 1 candidate. Reference adds a SearchQuery {text, tags} value (domain/saved_search.rs), a SavedSearchStore (index/saved_search.rs) holding query definitions only, and a saved_search command module that composes the tag AND-filter with the Stage 1 SearchIndex::query_filtered primitive, plus frontend wrappers in src/api/savedSearch.ts. Extension friction is high when Stage 1 hardcoded a tag-only search path instead of a composable text+tag primitive: a hardcoded Stage 1 forces re-plumbing the search path here."
+}

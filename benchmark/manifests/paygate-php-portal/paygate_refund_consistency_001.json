@@ -1,0 +1,32 @@
+{
+  "task_id": "paygate_refund_consistency_001",
+  "repo_id": "paygate-php-portal",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "prompt": "Finance sees refund records in the payment log, but invoice balances and order status sometimes remain stale. Make refunds update the customer-facing balances and status consistently.",
+  "issue_title": "Refunded payments do not always update the customer invoice",
+  "issue_body": "Finance sees refund records in the payment log, but invoice balances and order status sometimes remain stale. Make refunds update the customer-facing balances and status consistently.",
+  "expected_behavior": [
+    "Partial and full refunds update invoice balances exactly.",
+    "Refund records remain visible in the payment log.",
+    "A refund cannot exceed the amount paid.",
+    "Order status reflects the refunded state."
+  ],
+  "broken_snapshot": "benchmark/repos/paygate-php-portal/broken/paygate_refund_consistency_001",
+  "gold_snapshot": "benchmark/repos/paygate-php-portal/gold",
+  "visible_commands": ["python tests_visible/run_visible.py"],
+  "hidden_commands": ["python -m pytest benchmark/tests/paygate-php-portal/paygate_refund_consistency_001/hidden/test_hidden.py -q"],
+  "allowed_runtime_seconds": 600,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": ["app/**", "public/**"],
+  "ignored_paths": ["docs/**", "fixtures/**"],
+  "forbidden_paths": ["benchmark/**", "tests/**", ".tokenbench/**"],
+  "expected_failure_summary": "RefundService dropped the guard that rejects refunds exceeding the paid amount, and applyToInvoice updates the invoice refundedCents but never recomputes the order status, leaving it stale after a refund. Separately, applyToInvoice now sums refunds for only the order's first payment instead of every payment, so refunds on an order with multiple payments are undercounted.",
+  "skills_tested": ["invariant guards", "derived-status recomputation", "refund accounting"],
+  "root_cause_files": ["app/Services/RefundService.php"],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 2,
+  "task_author_notes": "Three coupled defects in RefundService. (1) Restore the over-refund guard (alreadyRefunded + amount > payment->amountCents throws). (2) Restore the order-status recomputation block in applyToInvoice (PENDING/PAID/REFUNDED/PARTIALLY_REFUNDED then save). (3) Restore applyToInvoice's refundedCents to sum refunds across ALL of the order's payments instead of only the first payment. On broken these fail: over_refund_rejected, order_status_reconciles, and refund_across_multiple_payments_exact (the new coupled check). Single-payment balance/log checks pass. A minimal fix of only the guard + status recomputation leaves refund_across_multiple_payments_exact failing; the all-payments summation is also required."
+}
