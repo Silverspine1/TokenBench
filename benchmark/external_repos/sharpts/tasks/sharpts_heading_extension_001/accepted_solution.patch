@@ -1,0 +1,31 @@
+diff --git a/Runtime/BuiltIns/MathBuiltIns.cs b/Runtime/BuiltIns/MathBuiltIns.cs
+index 76136e91..b7842b4d 100644
+--- a/Runtime/BuiltIns/MathBuiltIns.cs
++++ b/Runtime/BuiltIns/MathBuiltIns.cs
+@@ -149,7 +149,7 @@ public static class MathBuiltIns
+             }
+ 
+             string lower = word.ToLowerInvariant();
+-            bool edge = i == 0;
++            bool edge = i == 0 || i == last;
+             if (!edge && _headingSmallWords.Contains(lower))
+             {
+                 result[i] = lower;
+@@ -168,7 +168,7 @@ public static class MathBuiltIns
+     /// </summary>
+     private static bool IsAcronym(string word)
+     {
+-        if (word.Length == 0 || word.Length >= 4) return false;
++        if (word.Length == 0 || word.Length > 4) return false;
+         foreach (char c in word)
+         {
+             if (c < 'A' || c > 'Z') return false;
+@@ -192,7 +192,7 @@ public static class MathBuiltIns
+     private static string HFinish(string input)
+     {
+         int end = input.Length;
+-        if (end > 0 && IsTrailingPunct(input[end - 1]))
++        while (end > 0 && IsTrailingPunct(input[end - 1]))
+         {
+             end--;
+         }

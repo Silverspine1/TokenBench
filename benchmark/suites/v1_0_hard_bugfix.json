@@ -1,0 +1,12 @@
+{
+  "suite_id": "v1_0_hard_bugfix",
+  "description": "V1.0 Haiku-HARD bug-fix tasks: bespoke extensions (Go mvm + C# sharpts) + vague vibe-coder symptom + multiple coupled bugs where only one is hinted (visible test reproduces the hinted bug only). Models run with no websearch.",
+  "tasks": [
+    "benchmark/external_repos/sharpts/tasks/sharpts_heading_extension_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_compact_extension_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_duration_extension_001/manifest.json",
+    "benchmark/external_repos/mvm/tasks/mvm_slug_extension_001/manifest.json",
+    "benchmark/external_repos/mvm/tasks/mvm_ordinal_extension_001/manifest.json"
+  ],
+  "required_trials": 1
+}

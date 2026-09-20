@@ -1,0 +1,99 @@
+diff --git a/stdlib/core/tbx.go b/stdlib/core/tbx.go
+new file mode 100644
+index 0000000..db3bf6f
+--- /dev/null
++++ b/stdlib/core/tbx.go
+@@ -0,0 +1,93 @@
++package core
++
++import (
++	"reflect"
++	"strings"
++
++	"github.com/mvm-sh/mvm/stdlib"
++)
++
++// Package-local helpers for turning arbitrary titles into url-friendly slugs.
++
++// tbxSlug turns an arbitrary title into a url-friendly slug. It lowercases the
++// text, replaces stretches of punctuation and whitespace with single dashes,
++// shortens overlong letter runs, and finally caps the overall length.
++func tbxSlug(s string) string {
++	s = tbxNormalize(s)
++	s = tbxCollapse(s)
++	s = strings.Trim(s, "-")
++	s = tbxTruncate(s)
++	return s
++}
++
++// tbxNormalize lowercases ASCII letters and replaces every maximal run of
++// characters outside [a-z0-9] with a single dash.
++func tbxNormalize(s string) string {
++	var b strings.Builder
++	prevDash := false
++	for i := 0; i < len(s); i++ {
++		c := s[i]
++		if c >= 'A' && c <= 'Z' {
++			c = c + ('a' - 'A')
++		}
++		if (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') {
++			b.WriteByte(c)
++		} else {
++			if !prevDash {
++				b.WriteByte('-')
++			}
++		}
++		prevDash = false
++	}
++	return b.String()
++}
++
++// tbxCollapse shortens any run of the same letter that is longer than two
++// characters down to exactly two. Digits are passed through unchanged.
++func tbxCollapse(s string) string {
++	var b strings.Builder
++	var last byte
++	count := 0
++	for i := 0; i < len(s); i++ {
++		c := s[i]
++		if i > 0 && c == last {
++			count++
++		} else {
++			count = 1
++			last = c
++		}
++		if c == '-' {
++			b.WriteByte(c)
++		} else if count <= 2 {
++			b.WriteByte(c)
++		}
++	}
++	return b.String()
++}
++
++// tbxTruncate caps the slug at twenty characters. When the limit falls inside a
++// word it backs up to the last dash at or before the limit so words are kept
++// whole; if there is no such dash it cuts hard at the limit.
++func tbxTruncate(s string) string {
++	if len(s) <= 20 {
++		return s
++	}
++	cut := -1
++	for i := 0; i < 20 && i < len(s); i++ {
++		if s[i] == '-' {
++			cut = i
++		}
++	}
++	if cut <= 0 {
++		s = s[:20]
++	} else {
++		s = s[:cut]
++	}
++	return s
++}
++
++func init() {
++	stdlib.Values["tbx"] = map[string]reflect.Value{
++		"Slug": reflect.ValueOf(tbxSlug),
++	}
++}

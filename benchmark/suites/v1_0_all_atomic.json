@@ -1,0 +1,21 @@
+{
+  "suite_id": "v1_0_all_atomic",
+  "description": "V1.0 full atomic benchmark: 5 hard find-the-unmentioned-bug tasks + 9 medium tasks (6 bugs + 3 impls), across Go (mvm) + C# (sharpts). Run per treatment condition. Staged mini-language groups run separately via run-staged.",
+  "tasks": [
+    "benchmark/external_repos/sharpts/tasks/sharpts_heading_extension_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_compact_extension_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_duration_extension_001/manifest.json",
+    "benchmark/external_repos/mvm/tasks/mvm_slug_extension_001/manifest.json",
+    "benchmark/external_repos/mvm/tasks/mvm_ordinal_extension_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_roman_bug_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_bytes_bug_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_parseduration_bug_001/manifest.json",
+    "benchmark/external_repos/mvm/tasks/mvm_commafy_bug_001/manifest.json",
+    "benchmark/external_repos/mvm/tasks/mvm_expandrange_bug_001/manifest.json",
+    "benchmark/external_repos/mvm/tasks/mvm_romanto_bug_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_tobase_impl_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_csvrow_impl_001/manifest.json",
+    "benchmark/external_repos/mvm/tasks/mvm_numwords_impl_001/manifest.json"
+  ],
+  "required_trials": 1
+}

@@ -1,0 +1,8 @@
+{
+  "suite_id": "v1_0_heading_pilot",
+  "description": "Decisive last-try: vague vibe-coder symptom + 3 coupled bugs (only 1 hinted) in a bespoke extension. Tests whether under-specified, find-the-unmentioned-bugs tasks defeat Haiku. 3 trials.",
+  "tasks": [
+    "benchmark/external_repos/sharpts/tasks/sharpts_heading_extension_001/manifest.json"
+  ],
+  "required_trials": 3
+}

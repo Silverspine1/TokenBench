@@ -1,0 +1,33 @@
+{
+  "root_cause_files": ["stdlib/core/tbx.go"],
+  "extension_contract": "tbx.RomanTo(s string) int parses an uppercase Roman numeral in the canonical range 1..3999 to its integer value. Algorithm: scan left to right; for each symbol, if it is strictly smaller than the symbol immediately to its right it is SUBTRACTED from the running total, otherwise ADDED (handles IV/IX/XL/XC/CD/CM). Validation: empty input, any byte that is not one of I V X L C D M, and any final total outside 1..3999 all return -1.",
+  "injection_strategy": "Two coupled single-region defects in the bespoke tbxRomanTo helper, both surfaced in the prompt. Bug A is the obvious arithmetic error; Bug B is the validation edge a careless fixer leaves behind. The bugs sit in two different functions and share no code, so fixing one does not fix the other.",
+  "bugs": [
+    {
+      "id": "BUG_A",
+      "helper": "tbxRomanTo (accumulation loop)",
+      "hinted": true,
+      "defect": "The subtractive look-ahead branch was removed; the loop unconditionally adds every symbol value (total += v). Subtractive pairs are therefore summed instead of differenced.",
+      "symptom": "Every numeral containing a subtractive pair is too large: IV->6 (want 4), IX->11 (want 9), XL->60 (want 40), MMXXIV->2026 (want 2024), CDXLIV->666 (want 444). MMMCMXCIX sums to 4400, which trips the >3999 guard and returns -1 (want 3999). Pure additive numerals (III, VIII, LVIII, MMXV, XX) are unaffected."
+    },
+    {
+      "id": "BUG_B",
+      "helper": "tbxRomanValid",
+      "hinted": true,
+      "defect": "tbxRomanValid was reduced to `return len(s) > 0`, dropping the per-character check that every byte is one of the seven Roman symbols. Non-Roman bytes (value 0 via tbxRomanValue) are silently skipped instead of rejected.",
+      "symptom": "Strings with a non-Roman character are not rejected when their valid-symbol total still lands in 1..3999: IZ->1 (want -1), VX5->15 (want -1). Empty string still returns -1 by accident (total 0 < 1), as do all-junk strings that total 0, which is why this only bites mixed valid+junk input."
+    }
+  ],
+  "breakage_map": {
+    "BUG_A_checks": ["four", "nine", "year_2024", "four_44", "max_3999"],
+    "BUG_B_checks": ["bad_letter", "bad_digit"],
+    "controls_pass_in_broken": ["three", "eight", "fifty_eight", "year_2015", "twenty"]
+  },
+  "expected_failure_summary": "Accepted (correct tbx.go) 12/12 = 1.000. Broken passes the 5 additive controls and fails 7 (5 BUG_A + 2 BUG_B) -> 5/12 = 0.417, below the 0.9 gate.",
+  "partial_fix_traps": [
+    "Restoring only the subtractive look-ahead (BUG_A) leaves bad_letter and bad_digit failing: 10/12 = 0.833, still below 0.9.",
+    "Restoring only the per-character validation (BUG_B) leaves all five subtractive checks failing: 7/12 = 0.583, below 0.9.",
+    "Both the accumulation loop and the validation must be corrected; they live in two different functions and share no code."
+  ],
+  "note": "The bespoke tbx extension auto-registers because the harness blank-imports stdlib/core, whose init() populates stdlib.Values[\"tbx\"]. The registration boilerplate in init() is outside both bug regions. The visible test only reproduces BUG_A (IV->4)."
+}

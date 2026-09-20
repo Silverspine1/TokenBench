@@ -1,0 +1,7 @@
+[
+  {
+    "name": "a thousands value is compacted with one decimal",
+    "program": "v1.ts",
+    "exact": "1.5K"
+  }
+]

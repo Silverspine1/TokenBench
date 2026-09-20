@@ -1,0 +1,49 @@
+{
+  "root_cause_files": ["Runtime/BuiltIns/MathBuiltIns.cs"],
+  "task_kind": "implementation (staged, no defect.patch)",
+  "feature": "Math.parseCsvRow(s: string): string is a bespoke (invented) built-in added under the Math namespace. Because it lives on Math (typed as `any` by the static type checker), no TypeSystem change is needed: Math.parseCsvRow(\"a,b,c\") type-checks as any. The reference implementation registers a MethodV2(\"parseCsvRow\", 1, ...) entry on the BuiltInStaticBuilder chain in MathBuiltIns.cs plus one private helper method (ParseCsvRow) on the same class. It returns a string via RuntimeValue.FromString.",
+  "reference_approach": [
+    "Single left-to-right scan with an integer cursor; accumulate the current field in a StringBuilder and collect completed fields in a List<string>.",
+    "At the start of each field, peek the cursor: if it is a '\"' the field is QUOTED, otherwise UNQUOTED.",
+    "Quoted field: consume the opening quote, then copy characters until a '\"'. On a '\"', look ahead one char: if the next char is also '\"' it is the doubled-quote escape -> append one '\"' and skip both; otherwise it is the closing quote -> stop the field.",
+    "Unquoted field: copy characters verbatim (spaces included, no trimming) until the next comma or end of string.",
+    "After a field completes, if the cursor is on a ',' consume it and loop for another field (this is what preserves leading/middle/trailing empty fields and makes a lone ',' two empty fields); otherwise the row is done.",
+    "Return string.Join(\"|\", fields) wrapped in RuntimeValue.FromString. SharpTS prints the string as-is via console.log."
+  ],
+  "registration_note": "The key discovery the agent must make: built-ins are NOT added via a TypeSystem/AST change. They are registered as MethodV2 entries on the fluent BuiltInStaticBuilder in MathBuiltIns.cs (see existing abs/floor/pow/min/trunc). Putting parseCsvRow under Math means the type checker treats the call as `any`, so it compiles and runs without touching Parsing/TypeSystem. Note this method returns a STRING, so use RuntimeValue.FromString (the other Math methods return RuntimeValue.FromNumber).",
+  "edge_cases_most_likely_missed": [
+    "Comma inside a quoted field: a naive String.Split(',') yields a,b|c WRONG (3 fields) instead of a,b|c CORRECT (the quoted comma is literal) (c3, c8).",
+    "Doubled-quote escape: \"she said \"\"hi\"\"\" must decode to she said \"hi\"; parsers that treat every '\"' as a delimiter mangle this (c4).",
+    "Empty fields in every position: leading (,a,b -> |a|b), middle (a,,c -> a||c), trailing (a,b, -> a|b|), and a lone comma (',' -> |). Implementations that drop empty entries (e.g. StringSplitOptions.RemoveEmptyEntries) fail all of these (c2, c9, c10, c11).",
+    "A single empty quoted field \"\" must return the empty string, not a literal pair of quotes (c7).",
+    "A quoted field of only doubled quotes \"\"\"\"\"\" (six quote chars = open + two \"\" escapes + close) decodes to two literal quote chars \"\" (c13).",
+    "Unquoted fields must keep surrounding spaces verbatim ( a , b ->  a | b ); trimming breaks c6.",
+    "Mixing quoted and unquoted fields in one row (c5, c8, c12)."
+  ],
+  "hidden_cases": {
+    "c1": {"input": "a,b,c", "exact": "a|b|c", "covers": "happy path"},
+    "c2": {"input": "a,,c", "exact": "a||c", "covers": "middle empty field"},
+    "c3": {"input": "\"a,b\",c", "exact": "a,b|c", "covers": "comma inside quoted field is literal"},
+    "c4": {"input": "\"she said \"\"hi\"\"\",x", "exact": "she said \"hi\"|x", "covers": "doubled-quote escape"},
+    "c5": {"input": "\"hello\",world", "exact": "hello|world", "covers": "quoted + unquoted mix"},
+    "c6": {"input": " a , b ", "exact": " a | b ", "covers": "unquoted keeps spaces"},
+    "c7": {"input": "\"\"", "exact": "", "covers": "single empty quoted field -> empty string"},
+    "c8": {"input": "a,\"b,c\",d", "exact": "a|b,c|d", "covers": "quoted comma field between unquoted fields"},
+    "c9": {"input": ",a,b", "exact": "|a|b", "covers": "leading empty field"},
+    "c10": {"input": "a,b,", "exact": "a|b|", "covers": "trailing empty field"},
+    "c11": {"input": ",", "exact": "|", "covers": "lone comma = two empty fields"},
+    "c12": {"input": "\"x\",,\"y\"", "exact": "x||y", "covers": "empty field between two quoted fields"},
+    "c13": {"input": "\"\"\"\"\"\"", "exact": "\"\"", "covers": "quoted field of only doubled quotes"}
+  },
+  "visible_case": {
+    "v1": {"input": "a,b,c", "exact": "a|b|c", "note": "happy-path repro; fails on baseline (Math.parseCsvRow undefined -> runtime error / no matching output), passes once implemented."}
+  },
+  "ts_string_escaping_note": "In the .ts source files the CSV input is a double-quoted TypeScript string literal, so each literal CSV double-quote is written as \\\" and a CSV \"\" escape is written as \\\"\\\". c13's input is six literal quote chars, written \"\\\"\\\"\\\"\\\"\\\"\\\"\". Every expected value was produced by running the .ts file through the CORRECT reference build, never hand-computed.",
+  "expected_validation": {
+    "baseline": "pass_rate ~ 0.0 (feature absent: Math.parseCsvRow is not registered, so the program errors / produces no matching output for every case) -> well below the 0.9 gate.",
+    "accepted": "pass_rate = 1.000 (13/13 hidden, reference impl).",
+    "verdict": "PASS (staged: baseline < gate AND accepted == 1.0)."
+  },
+  "all_expected_values_source": "Every exact value was derived by running the .ts programs through the CORRECT reference build (dotnet bin/Release/net10.0/SharpTS.dll), not computed by hand.",
+  "no_pristine_gold": "Staged implementation task: there is no defect.patch and no pristine gold tree for the feature; the validator auto-detects staged mode and only requires baseline < gate and accepted == 1.0."
+}

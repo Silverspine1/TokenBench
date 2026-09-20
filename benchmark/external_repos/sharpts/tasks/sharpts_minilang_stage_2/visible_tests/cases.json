@@ -1,0 +1,12 @@
+[
+  {
+    "name": "string concatenation",
+    "program": "v1.ts",
+    "exact": "foobar"
+  },
+  {
+    "name": "carried-over numeric behavior still works",
+    "program": "v2.ts",
+    "exact": "14"
+  }
+]

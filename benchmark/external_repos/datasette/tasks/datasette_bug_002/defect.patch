@@ -1,0 +1,11 @@
+--- a/datasette/app.py
++++ b/datasette/app.py
+@@ -586,7 +586,7 @@ class Datasette:
+             # step 3: table-level metadata
+             for tablename, table in db.get("tables", {}).items():
+                 for key, value in table.items():
+-                    if key == "columns":
++                    if key in ("columns", "license", "license_url", "source", "source_url"):
+                         continue
+                     await self.set_resource_metadata(
+                         dbname, tablename, key, _to_string(value)

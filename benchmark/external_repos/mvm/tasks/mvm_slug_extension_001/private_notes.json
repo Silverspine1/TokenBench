@@ -1,0 +1,42 @@
+{
+  "root_cause_files": ["stdlib/core/tbx.go"],
+  "extension_contract": "tbx.Slug(s string) string builds a url-friendly slug via a four-step pipeline: (1) lowercase ASCII A-Z; (2) replace every maximal run of chars NOT in [a-z0-9] with a single '-' (tbxNormalize); (3) collapse any run of the SAME letter longer than 2 down to exactly 2, leaving digits untouched (tbxCollapse); (4) trim leading/trailing '-'; (5) if longer than 20 chars, cut at the LAST '-' at or before index 20 (never mid-word; hard-cut at 20 if no such dash), then strip any trailing '-' (tbxTruncate).",
+  "injection_strategy": "Three independent, single-line-region defects, one per helper, only the first hinted by the prompt.",
+  "bugs": [
+    {
+      "id": "BUG1",
+      "helper": "tbxNormalize",
+      "hinted": true,
+      "defect": "prevDash is reset to false on EVERY iteration (moved outside the branches) and never set true when a dash is emitted, so the 'collapse a run of separators to one dash' guard never fires. Consecutive non-alnum chars each emit their own dash.",
+      "symptom": "Any input with two or more adjacent punctuation/space characters yields multiple dashes, e.g. 'Hello, World!' -> 'hello--world', 'C++ & Go' -> 'c-----go', 'a--b' -> 'a--b'. Visible on short inputs; this is the obvious symptom the prompt gestures at."
+    },
+    {
+      "id": "BUG2",
+      "helper": "tbxCollapse",
+      "hinted": false,
+      "defect": "The run-collapse rule is applied to ALL non-dash characters instead of only letters: the letter-only guard (`c >= 'a' && c <= 'z'`) is replaced with a dash-only special-case, so digit runs longer than two are also shortened.",
+      "symptom": "Digit runs >2 are wrongly collapsed: 'a1111b' -> 'a11b', 'zone55500' -> 'zone5500'. Letters and short digit runs are unaffected, so this only bites inputs containing a long digit run."
+    },
+    {
+      "id": "BUG3",
+      "helper": "tbxTruncate",
+      "hinted": false,
+      "defect": "The dash-search loop bound is `i < 20` instead of `i <= 20`, so a separator sitting exactly at index 20 is not considered; the final trailing-dash trim (strings.TrimRight) is also dropped.",
+      "symptom": "When a word boundary falls exactly on the 20-char limit the slug is cut back to a much earlier dash, e.g. 'data sciencetoolkitx guide' -> 'data' (should be 'data-sciencetoolkitx'), 'fast foodrestaurantx menu' -> 'fast' (should be 'fast-foodrestaurantx'). Only bites long inputs whose boundary lands on the limit."
+    }
+  ],
+  "breakage_map": {
+    "BUG1_checks": ["punct_comma", "symbols", "double_dash"],
+    "BUG2_checks": ["digits_run", "digits_zip"],
+    "BUG3_checks": ["trunc_data", "trunc_fast"],
+    "controls_pass_in_broken": ["basic", "letter_run", "trim_edges", "upper_lower", "with_year"]
+  },
+  "expected_failure_summary": "Accepted (correct tbx.go) 12/12 = 1.000. Broken fails 7/12 (3 BUG1 + 2 BUG2 + 2 BUG3), passes 5 controls -> 5/12 = 0.417, well below the 0.9 gate.",
+  "partial_fix_traps": [
+    "Fixing only the dash-collapse (BUG1) — the obvious, hinted symptom — leaves digits_run, digits_zip, trunc_data, trunc_fast failing: 8/12 = 0.667, still below 0.9.",
+    "Special-casing the visible double-dash inputs in tbxSlug rather than restoring the prevDash bookkeeping does not address BUG2/BUG3 at all.",
+    "Patching tbxCollapse to exempt digits but missing the truncation boundary leaves the trunc_* checks failing.",
+    "All three helpers must be corrected for a full pass; the bugs live in three different functions and share no code."
+  ],
+  "note": "The bespoke tbx extension auto-registers because the harness blank-imports stdlib/core, whose init() populates stdlib.Values[\"tbx\"]. No other wiring is touched. The registration boilerplate in init() is outside every bug region."
+}

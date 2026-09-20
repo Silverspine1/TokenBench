@@ -1,0 +1,6 @@
+{
+  "root_cause_files": ["datasette/views/base.py"],
+  "injection_strategy": "Changed data.get('next') to data.get('next_url') inside the streaming CSV loop. The table data dict uses the key 'next' for the next-page token; 'next_url' does not exist, so it always returns None. The while-loop condition (next and stream) therefore exits after the first page. All rows are retrieved for page 1 correctly, but subsequent pages are never fetched.",
+  "expected_failure_summary": "Streaming CSV download (?_stream=1) only returns the first page of rows. Tables with row count > page_size silently return a truncated result.",
+  "calibration_notes": "Medium difficulty: model must find the streaming CSV loop in stream_fn and recognize that data.get('next_url') is wrong — should be data.get('next')."
+}

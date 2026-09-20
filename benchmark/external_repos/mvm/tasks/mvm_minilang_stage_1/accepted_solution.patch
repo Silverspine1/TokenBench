@@ -1,0 +1,548 @@
+diff --git a/minilang/ast.go b/minilang/ast.go
+new file mode 100644
+index 0000000..6f25240
+--- /dev/null
++++ b/minilang/ast.go
+@@ -0,0 +1,57 @@
++package minilang
++
++// stmt is a single executable statement.
++type stmt interface {
++	isStmt()
++}
++
++// letStmt binds the value of expr to a variable name.
++type letStmt struct {
++	name string
++	expr expr
++}
++
++func (*letStmt) isStmt() {}
++
++// printStmt evaluates expr and emits a line of output.
++type printStmt struct {
++	expr expr
++}
++
++func (*printStmt) isStmt() {}
++
++// expr is an evaluable expression node.
++type expr interface {
++	isExpr()
++}
++
++// intLit is a non-negative integer literal.
++type intLit struct {
++	value int
++}
++
++func (*intLit) isExpr() {}
++
++// varRef references a previously bound variable.
++type varRef struct {
++	name string
++}
++
++func (*varRef) isExpr() {}
++
++// unaryExpr is a prefix operator applied to one operand.
++type unaryExpr struct {
++	op      tokenKind
++	operand expr
++}
++
++func (*unaryExpr) isExpr() {}
++
++// binaryExpr is an infix operator applied to two operands.
++type binaryExpr struct {
++	op    tokenKind
++	left  expr
++	right expr
++}
++
++func (*binaryExpr) isExpr() {}
+diff --git a/minilang/env.go b/minilang/env.go
+new file mode 100644
+index 0000000..0aa9f68
+--- /dev/null
++++ b/minilang/env.go
+@@ -0,0 +1,24 @@
++package minilang
++
++// env holds the variable bindings for a running program.
++type env struct {
++	vars map[string]value
++}
++
++func newEnv() *env {
++	return &env{vars: make(map[string]value)}
++}
++
++// set binds name to v, overwriting any previous binding.
++func (e *env) set(name string, v value) {
++	e.vars[name] = v
++}
++
++// get returns the value bound to name, failing if it is undefined.
++func (e *env) get(name string) value {
++	v, ok := e.vars[name]
++	if !ok {
++		fail("undefined variable: " + name)
++	}
++	return v
++}
+diff --git a/minilang/errors.go b/minilang/errors.go
+new file mode 100644
+index 0000000..1a6d49a
+--- /dev/null
++++ b/minilang/errors.go
+@@ -0,0 +1,15 @@
++package minilang
++
++// langError is a recoverable failure surfaced to the program as an
++// "error: <msg>" output line. It is raised via panic inside the lexer,
++// parser, and interpreter and recovered at the top level.
++type langError struct {
++	msg string
++}
++
++func (e *langError) Error() string { return e.msg }
++
++// fail raises a langError carrying the given message.
++func fail(msg string) {
++	panic(&langError{msg: msg})
++}
+diff --git a/minilang/interp.go b/minilang/interp.go
+new file mode 100644
+index 0000000..af961e4
+--- /dev/null
++++ b/minilang/interp.go
+@@ -0,0 +1,88 @@
++package minilang
++
++import "strings"
++
++// Run executes a whole mini-language program and returns the joined output of
++// its print statements (newline-separated, no trailing newline). Any lex,
++// parse, or evaluation failure is reported as a single "error: <msg>" line.
++func Run(src string) (out string) {
++	defer func() {
++		if r := recover(); r != nil {
++			if le, ok := r.(*langError); ok {
++				out = "error: " + le.msg
++				return
++			}
++			panic(r)
++		}
++	}()
++	stmts := splitStatements(src)
++	e := newEnv()
++	var lines []string
++	for _, raw := range stmts {
++		s := parseStatementSource(raw)
++		switch n := s.(type) {
++		case *letStmt:
++			e.set(n.name, evalExpr(e, n.expr))
++		case *printStmt:
++			lines = append(lines, evalExpr(e, n.expr).display())
++		}
++	}
++	return strings.Join(lines, "\n")
++}
++
++// splitStatements breaks a program into statement sources on newlines and
++// semicolons, dropping blank statements.
++func splitStatements(src string) []string {
++	fields := strings.FieldsFunc(src, func(r rune) bool {
++		return r == '\n' || r == ';'
++	})
++	var out []string
++	for _, f := range fields {
++		if strings.TrimSpace(f) == "" {
++			continue
++		}
++		out = append(out, f)
++	}
++	return out
++}
++
++// evalExpr evaluates an expression node to a value.
++func evalExpr(e *env, node expr) value {
++	switch n := node.(type) {
++	case *intLit:
++		return intValue(n.value)
++	case *varRef:
++		return e.get(n.name)
++	case *unaryExpr:
++		v := evalExpr(e, n.operand)
++		if n.op == tokMinus {
++			return intValue(-v.i)
++		}
++		fail("bad operator")
++	case *binaryExpr:
++		return evalBinary(e, n)
++	}
++	fail("bad expression")
++	return value{}
++}
++
++// evalBinary evaluates an infix arithmetic operation.
++func evalBinary(e *env, n *binaryExpr) value {
++	l := evalExpr(e, n.left)
++	r := evalExpr(e, n.right)
++	switch n.op {
++	case tokPlus:
++		return intValue(l.i + r.i)
++	case tokMinus:
++		return intValue(l.i - r.i)
++	case tokStar:
++		return intValue(l.i * r.i)
++	case tokSlash:
++		if r.i == 0 {
++			fail("division by zero")
++		}
++		return intValue(l.i / r.i)
++	}
++	fail("bad operator")
++	return value{}
++}
+diff --git a/minilang/lexer.go b/minilang/lexer.go
+new file mode 100644
+index 0000000..1e7ef81
+--- /dev/null
++++ b/minilang/lexer.go
+@@ -0,0 +1,107 @@
++package minilang
++
++// lexer turns a single statement string into a stream of tokens. Whitespace
++// (other than the statement separators handled by the splitter) is ignored.
++type lexer struct {
++	src string
++	pos int
++}
++
++func newLexer(src string) *lexer {
++	return &lexer{src: src}
++}
++
++func isSpace(c byte) bool {
++	return c == ' ' || c == '\t' || c == '\r' || c == '\v' || c == '\f'
++}
++
++func isDigit(c byte) bool {
++	return c >= '0' && c <= '9'
++}
++
++func isIdentStart(c byte) bool {
++	return c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
++}
++
++func isIdentPart(c byte) bool {
++	return isIdentStart(c) || isDigit(c)
++}
++
++// skipSpaces advances past any run of insignificant whitespace.
++func (l *lexer) skipSpaces() {
++	for l.pos < len(l.src) && isSpace(l.src[l.pos]) {
++		l.pos++
++	}
++}
++
++// next produces the next token from the source.
++func (l *lexer) next() token {
++	l.skipSpaces()
++	if l.pos >= len(l.src) {
++		return token{kind: tokEOF}
++	}
++	c := l.src[l.pos]
++	switch {
++	case isDigit(c):
++		return l.lexInt()
++	case isIdentStart(c):
++		return l.lexIdent()
++	}
++	l.pos++
++	switch c {
++	case '+':
++		return token{kind: tokPlus}
++	case '-':
++		return token{kind: tokMinus}
++	case '*':
++		return token{kind: tokStar}
++	case '/':
++		return token{kind: tokSlash}
++	case '(':
++		return token{kind: tokLParen}
++	case ')':
++		return token{kind: tokRParen}
++	case '=':
++		return token{kind: tokAssign}
++	}
++	fail("unexpected character")
++	return token{}
++}
++
++// lexInt reads a run of decimal digits.
++func (l *lexer) lexInt() token {
++	start := l.pos
++	for l.pos < len(l.src) && isDigit(l.src[l.pos]) {
++		l.pos++
++	}
++	return token{kind: tokInt, text: l.src[start:l.pos]}
++}
++
++// lexIdent reads an identifier or a reserved keyword (let, print).
++func (l *lexer) lexIdent() token {
++	start := l.pos
++	for l.pos < len(l.src) && isIdentPart(l.src[l.pos]) {
++		l.pos++
++	}
++	word := l.src[start:l.pos]
++	switch word {
++	case "let":
++		return token{kind: tokLet}
++	case "print":
++		return token{kind: tokPrint}
++	}
++	return token{kind: tokIdent, text: word}
++}
++
++// tokenize lexes the whole statement into a slice ending with tokEOF.
++func tokenize(src string) []token {
++	l := newLexer(src)
++	var toks []token
++	for {
++		t := l.next()
++		toks = append(toks, t)
++		if t.kind == tokEOF {
++			return toks
++		}
++	}
++}
+diff --git a/minilang/parser.go b/minilang/parser.go
+new file mode 100644
+index 0000000..248ed39
+--- /dev/null
++++ b/minilang/parser.go
+@@ -0,0 +1,140 @@
++package minilang
++
++import "strconv"
++
++// parser is a recursive-descent parser over a token slice for one statement.
++type parser struct {
++	toks []token
++	pos  int
++}
++
++func newParser(toks []token) *parser {
++	return &parser{toks: toks}
++}
++
++func (p *parser) peek() token {
++	if p.pos >= len(p.toks) {
++		return token{kind: tokEOF}
++	}
++	return p.toks[p.pos]
++}
++
++func (p *parser) advance() token {
++	t := p.peek()
++	if p.pos < len(p.toks) {
++		p.pos++
++	}
++	return t
++}
++
++func (p *parser) expect(k tokenKind) token {
++	t := p.peek()
++	if t.kind != k {
++		fail("parse error")
++	}
++	return p.advance()
++}
++
++// parseStatement parses one complete statement and verifies the line ends.
++func (p *parser) parseStatement() stmt {
++	t := p.peek()
++	var s stmt
++	switch t.kind {
++	case tokLet:
++		s = p.parseLet()
++	case tokPrint:
++		s = p.parsePrint()
++	default:
++		fail("parse error")
++	}
++	if p.peek().kind != tokEOF {
++		fail("parse error")
++	}
++	return s
++}
++
++// parseLet parses: let <ident> = <expr>
++func (p *parser) parseLet() stmt {
++	p.expect(tokLet)
++	name := p.expect(tokIdent).text
++	p.expect(tokAssign)
++	e := p.parseExpr()
++	return &letStmt{name: name, expr: e}
++}
++
++// parsePrint parses: print <expr>
++func (p *parser) parsePrint() stmt {
++	p.expect(tokPrint)
++	e := p.parseExpr()
++	return &printStmt{expr: e}
++}
++
++// parseExpr handles the lowest precedence: '+' and '-', left-associative.
++func (p *parser) parseExpr() expr {
++	left := p.parseTerm()
++	for {
++		k := p.peek().kind
++		if k == tokPlus || k == tokMinus {
++			p.advance()
++			right := p.parseTerm()
++			left = &binaryExpr{op: k, left: left, right: right}
++			continue
++		}
++		break
++	}
++	return left
++}
++
++// parseTerm handles '*' and '/', which bind tighter, left-associative.
++func (p *parser) parseTerm() expr {
++	left := p.parseUnary()
++	for {
++		k := p.peek().kind
++		if k == tokStar || k == tokSlash {
++			p.advance()
++			right := p.parseUnary()
++			left = &binaryExpr{op: k, left: left, right: right}
++			continue
++		}
++		break
++	}
++	return left
++}
++
++// parseUnary handles a leading minus in any position.
++func (p *parser) parseUnary() expr {
++	if p.peek().kind == tokMinus {
++		p.advance()
++		return &unaryExpr{op: tokMinus, operand: p.parseUnary()}
++	}
++	return p.parsePrimary()
++}
++
++// parsePrimary handles literals, variables, and parenthesised groups.
++func (p *parser) parsePrimary() expr {
++	t := p.peek()
++	switch t.kind {
++	case tokInt:
++		p.advance()
++		n, err := strconv.Atoi(t.text)
++		if err != nil {
++			fail("parse error")
++		}
++		return &intLit{value: n}
++	case tokIdent:
++		p.advance()
++		return &varRef{name: t.text}
++	case tokLParen:
++		p.advance()
++		e := p.parseExpr()
++		p.expect(tokRParen)
++		return e
++	}
++	fail("parse error")
++	return nil
++}
++
++// parseStatementSource lexes and parses one statement string.
++func parseStatementSource(src string) stmt {
++	return newParser(tokenize(src)).parseStatement()
++}
+diff --git a/minilang/token.go b/minilang/token.go
+new file mode 100644
+index 0000000..4644de9
+--- /dev/null
++++ b/minilang/token.go
+@@ -0,0 +1,26 @@
++package minilang
++
++// tokenKind enumerates the lexical categories the lexer can produce.
++type tokenKind int
++
++const (
++	tokEOF tokenKind = iota
++	tokInt
++	tokIdent
++	tokPlus
++	tokMinus
++	tokStar
++	tokSlash
++	tokLParen
++	tokRParen
++	tokAssign
++	tokLet
++	tokPrint
++)
++
++// token is a single lexical unit with its source text payload.
++type token struct {
++	kind tokenKind
++	// text holds the literal characters for integers and identifiers.
++	text string
++}
+diff --git a/minilang/value.go b/minilang/value.go
+new file mode 100644
+index 0000000..bb14882
+--- /dev/null
++++ b/minilang/value.go
+@@ -0,0 +1,18 @@
++package minilang
++
++import "strconv"
++
++// value is a runtime value produced by evaluating an expression. Stage 1
++// only ever produces integers.
++type value struct {
++	i int
++}
++
++func intValue(i int) value {
++	return value{i: i}
++}
++
++// display renders a value the way print emits it.
++func (v value) display() string {
++	return strconv.Itoa(v.i)
++}
+diff --git a/stdlib/core/tbx.go b/stdlib/core/tbx.go
+new file mode 100644
+index 0000000..fcd78e8
+--- /dev/null
++++ b/stdlib/core/tbx.go
+@@ -0,0 +1,19 @@
++package core
++
++import (
++	"reflect"
++
++	"github.com/mvm-sh/mvm/minilang"
++	"github.com/mvm-sh/mvm/stdlib"
++)
++
++// tbxRun executes a mini-language program and returns its printed output.
++func tbxRun(src string) string {
++	return minilang.Run(src)
++}
++
++func init() {
++	stdlib.Values["tbx"] = map[string]reflect.Value{
++		"Run": reflect.ValueOf(tbxRun),
++	}
++}

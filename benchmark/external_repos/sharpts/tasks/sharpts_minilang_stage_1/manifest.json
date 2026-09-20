@@ -1,0 +1,66 @@
+{
+  "task_id": "sharpts_minilang_stage_1",
+  "repo_id": "sharpts",
+  "repo_kind": "external_github",
+  "source_ref": "benchmark/external_repos/sharpts/source.json",
+  "base_commit": "33f266f97fcdf2f37f438f4eedaed3b4e7ce05d7",
+  "defect_patch": "",
+  "private_notes_path": "private_notes.json",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "hard",
+  "stage": 1,
+  "stage_group_id": "sharpts_minilang",
+  "next_stage_task_id": "sharpts_minilang_stage_2",
+  "issue_title": "Implement a small interpreted mini-language, exposed as Math.run(src)",
+  "issue_body": "We want this runtime to be able to evaluate programs written in a tiny bespoke scripting language and return their printed output. Expose it as a single built-in: Math.run(src: string): string. The argument is the full source text of a mini-language program; the return value is the program's printed output (the concatenation of everything its print statements produced).\n\nThe mini-language (stage 1, numeric):\n- A program is a sequence of statements separated by newlines or ';'. There are two statement forms:\n    let <ident> = <expr>   binds a variable\n    print <expr>           evaluates the expression and emits one output line\n- Expressions support: integer and decimal number literals; the binary operators + - * / with standard precedence (* and / bind tighter than + and -) and left-associativity; parentheses for grouping (with nesting); unary minus; and references to previously bound variables. Whitespace between tokens is ignored.\n- Numbers behave and print like JavaScript numbers: division is real (floating) division, and an integer-valued result prints with no decimal point (so 6/2 prints as 3, and 7/2 prints as 3.5).\n- The output returned by Math.run is the print lines joined by a single newline, with NO trailing newline.\n- Errors: if the program cannot be parsed, or it references an undefined variable, Math.run returns the single line 'error: <message>' instead of any program output.\n\nThe subsystem does not exist yet; build it from scratch as a clean, multi-file subsystem and wire it in so console.log(Math.run(\"print 2+3\")) prints 5.",
+  "prompt": "Add a new capability to this TypeScript runtime: a tiny interpreted mini-language, exposed through one built-in method Math.run(src: string): string. The argument is the source text of a mini-language program; the return value is that program's printed output.\n\nThe mini-language (this stage is numeric only):\n- A program is a sequence of statements separated by newlines or ';'. Two statement forms exist:\n    let <ident> = <expr>   binds a variable to the value of an expression\n    print <expr>           evaluates the expression and emits one output line\n- Expressions support: integer and decimal number literals; the operators + - * / with standard precedence (* and / bind tighter than + and -) and left-associativity (so 10-3-2 is 5 and 8/4/2 is 1); parentheses for grouping, with arbitrary nesting; unary minus in any position (-5, -(2+3)); and references to variables bound earlier with let. Whitespace between tokens is insignificant.\n- Numbers are JavaScript numbers: division is real/floating (7/2 is 3.5), and integer-valued results print with NO decimal point (6/2 prints as 3, not 3.0).\n- Math.run returns the print lines joined by a single '\\n', with no trailing newline. A program with no print statements returns the empty string.\n- Error handling: if the source cannot be parsed, or an expression references an undefined variable, Math.run returns exactly one line, 'error: <message>', and no program output. Choose clear, stable messages (their exact wording is part of the contract you define, so keep it deterministic).\n\nThe feature does not exist yet. Design it as a clean, multi-file subsystem (lexer, parser, AST, evaluator, and so on are separate concerns) rather than one monolithic function, and discover how this runtime registers built-ins so that console.log(Math.run(\"let x = 2 + 3 * 4; print x\")) prints 14.",
+  "expected_behavior": [
+    "Math.run evaluates let/print programs: 'let x = 5\\nprint x' returns '5'.",
+    "Arithmetic has standard precedence and left-associativity: 'print 2 + 3 * 4' is 14; 'print 10 - 3 - 2' is 5; 'print 8 / 4 / 2' is 1.",
+    "Parentheses group and nest: 'print (2 + 3) * 4' is 20.",
+    "Unary minus works in any position: 'print -7 + 10' is 3; 'print -(2 + 3)' is -5.",
+    "Division is real and integer-valued results print without a decimal: 'print 7 / 2' is 3.5; 'print 6 / 2' is 3.",
+    "Multiple statements (newline- or ';'-separated) each contribute one print line, joined by newline with no trailing newline.",
+    "An undefined variable or a parse error makes Math.run return a single 'error: <message>' line instead of program output."
+  ],
+  "visible_commands": [
+    "python benchmark/external_repos/sharpts/hidden_driver.py benchmark/external_repos/sharpts/tasks/sharpts_minilang_stage_1/visible_tests"
+  ],
+  "hidden_commands": [
+    "python benchmark/external_repos/sharpts/hidden_driver.py benchmark/external_repos/sharpts/tasks/sharpts_minilang_stage_1/hidden_tests"
+  ],
+  "allowed_runtime_seconds": 1200,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "Runtime/**",
+    "Execution/**",
+    "Parsing/**",
+    "TypeSystem/**",
+    "Compilation/**"
+  ],
+  "ignored_paths": [
+    "bin/**",
+    "obj/**",
+    "tests_visible/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "skills_tested": [
+    "designing a multi-file interpreter subsystem from scratch",
+    "implementing a recursive-descent expression parser with precedence and associativity",
+    "tree-walking evaluation with a variable environment",
+    "JavaScript-style number formatting and real division",
+    "discovering an undocumented built-in registration mechanism in an unfamiliar codebase"
+  ],
+  "root_cause_files": [
+    "Runtime/BuiltIns/MathBuiltIns.cs"
+  ],
+  "expected_changed_files_min": 2,
+  "expected_changed_files_max": 12,
+  "broken_snapshot": "",
+  "gold_snapshot": ""
+}

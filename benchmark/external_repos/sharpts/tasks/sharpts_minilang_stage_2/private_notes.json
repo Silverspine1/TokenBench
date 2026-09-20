@@ -1,0 +1,32 @@
+{
+  "feature": "Add a string data type to the existing Math.run mini-language: double-quoted string literals with \\\" and \\n escapes, + overloaded (number+number adds, string+string concatenates, mixed = type error), print of a string emits raw content, and the builtins len(x) and upper(x). All stage-1 numeric behavior is preserved.",
+  "files_touched": [
+    "Runtime/BuiltIns/MathBuiltIns.cs",
+    "Runtime/MiniLang/Token.cs",
+    "Runtime/MiniLang/Lexer.cs",
+    "Runtime/MiniLang/Ast.cs",
+    "Runtime/MiniLang/Parser.cs",
+    "Runtime/MiniLang/MlValue.cs",
+    "Runtime/MiniLang/Environment.cs",
+    "Runtime/MiniLang/Interpreter.cs",
+    "Runtime/MiniLang/MlError.cs"
+  ],
+  "accepted_patch_note": "This stage's accepted_solution.patch is the COMBINED stage-1 + stage-2 implementation (numeric interpreter PLUS strings), generated against pristine so the staged validator can apply it directly to the pinned clone and pass the stage-2 hidden tests. The real harness seeds this stage with the previous stage's candidate (input_source: previous_candidate); the combined reference patch is the ground-truth equivalent for validation.",
+  "implementation": [
+    "Token.cs: add TokenType.String and TokenType.Comma.",
+    "Lexer.cs: scan double-quoted string literals into a String token, unescaping \\\" -> '\"', \\n -> newline, \\\\ -> '\\\\'; unterminated string or unknown escape raises MlError. Add ',' as a Comma token (for call argument lists).",
+    "Ast.cs: add StringLiteral (unescaped content) and Call (callee name + argument list) expression nodes.",
+    "Parser.cs: in primary, produce StringLiteral for a String token; when an identifier is immediately followed by '(' parse a Call (comma-separated args, here arity 1), otherwise a VariableRef.",
+    "MlValue.cs: widen the union to {Number, String}; add FromString, IsNumber/IsString, TypeName, and make Display() emit the raw string for string values.",
+    "Interpreter.cs: StringLiteral -> string value; '+' overloaded (num+num add, str+str concat, otherwise MlError 'cannot add <t> and <t>'); other arithmetic ops and unary minus require numbers (else MlError); Call dispatches len (string -> number length) and upper (string -> uppercased), each arity-1 and string-typed."
+  ],
+  "stage_integration_points": "Strings touch nearly every stage-1 file: Token (String/Comma kinds), Lexer (string scanning + escapes + comma), Ast (StringLiteral + Call nodes), Parser (string primary + call syntax), MlValue (Number|String union + string Display), Interpreter (+ overload, type errors, len/upper, string-aware unary/arithmetic). Only Environment.cs and MlError.cs are unchanged. This cross-cutting threading is the hard-to-bolt-on integration.",
+  "key_traps": [
+    "The + operator can no longer assume both operands are numbers; a naive stage-1 evaluator that reads .Number on every operand will silently mis-handle strings - the value model must become a tagged union and every arithmetic path must branch on kind.",
+    "len returns a NUMBER (so len(s) + 1 is arithmetic), while upper returns a STRING; getting the result kinds wrong breaks composition cases.",
+    "Escapes are resolved at lex time, so the stored string content already contains the real characters; print emits them raw (a \\n becomes a real newline in the joined output).",
+    "Mixed number+string '+' must produce the same 'error: <message>' single-line output as other errors, not a thrown/uncaught exception."
+  ],
+  "baseline_behavior": "Seeded from the stage-1 candidate (numeric-only). With no string support, string literals fail to lex/parse and len/upper are unknown, so every string hidden check fails while numeric ones may still pass. Against pristine (validator baseline) Math.run is absent and all checks fail.",
+  "expected_failure_summary": "Baseline (validator, pristine - feature absent): 0/16 hidden checks pass. Accepted (combined numeric+strings reference applied to pristine): 16/16 pass."
+}

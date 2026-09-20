@@ -1,0 +1,32 @@
+diff --git a/stdlib/core/tbx.go b/stdlib/core/tbx.go
+index 589712e..3621ed6 100644
+--- a/stdlib/core/tbx.go
++++ b/stdlib/core/tbx.go
+@@ -10,7 +10,8 @@ import (
+ // suffixFor returns the ordinal suffix for a non-negative magnitude, taking the
+ // teens range into account before falling back to the last-digit rule.
+ func suffixFor(n int) string {
+-	if n == 11 || n == 12 || n == 13 {
++	mod100 := n % 100
++	if mod100 >= 11 && mod100 <= 13 {
+ 		return "th"
+ 	}
+ 	switch n % 10 {
+@@ -19,7 +20,7 @@ func suffixFor(n int) string {
+ 	case 2:
+ 		return "nd"
+ 	case 3:
+-		return "th"
++		return "rd"
+ 	default:
+ 		return "th"
+ 	}
+@@ -34,7 +35,7 @@ func ordinalNonNegative(n int) string {
+ // tbxOrdinalize renders an integer rank with its English ordinal suffix.
+ func tbxOrdinalize(n int) string {
+ 	if n < 0 {
+-		return ordinalNonNegative(-n)
++		return "-" + ordinalNonNegative(-n)
+ 	}
+ 	return ordinalNonNegative(n)
+ }

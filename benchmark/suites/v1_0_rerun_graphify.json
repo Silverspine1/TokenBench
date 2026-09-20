@@ -1,0 +1,9 @@
+{
+  "suite_id": "v1_0_rerun_graphify",
+  "description": "Re-run of irregular sonnet_graphify results: marketlab warmup alignment + tobase impl.",
+  "tasks": [
+    "benchmark/manifests/marketlab-ml/marketlab_warmup_alignment_001.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_tobase_impl_001/manifest.json"
+  ],
+  "required_trials": 1
+}

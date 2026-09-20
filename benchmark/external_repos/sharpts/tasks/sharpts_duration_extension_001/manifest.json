@@ -1,0 +1,56 @@
+{
+  "task_id": "sharpts_duration_extension_001",
+  "repo_id": "sharpts",
+  "repo_kind": "external_github",
+  "source_ref": "benchmark/external_repos/sharpts/source.json",
+  "base_commit": "33f266f97fcdf2f37f438f4eedaed3b4e7ce05d7",
+  "defect_patch": "defect.patch",
+  "private_notes_path": "private_notes.json",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "issue_title": "Duration strings look off",
+  "issue_body": "I'm formatting durations for my UI and some of them come out looking wrong - the numbers/zeros don't look right for certain times. Can you take a look and make it format them properly?",
+  "prompt": "This build adds a custom helper, Math.duration(totalSeconds: number): string, that turns a number of seconds into a short human-readable duration. I'm formatting durations for my UI and some of them come out looking wrong - the numbers/zeros don't look right for certain times. Short durations are mostly fine but some come back looking off. Can you take a look and make it format them properly?",
+  "expected_behavior": [
+    "Durations are formatted consistently and correctly for a range of inputs."
+  ],
+  "visible_commands": [
+    "python benchmark/external_repos/sharpts/hidden_driver.py benchmark/external_repos/sharpts/tasks/sharpts_duration_extension_001/visible_tests"
+  ],
+  "hidden_commands": [
+    "python benchmark/external_repos/sharpts/hidden_driver.py benchmark/external_repos/sharpts/tasks/sharpts_duration_extension_001/hidden_tests"
+  ],
+  "allowed_runtime_seconds": 900,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "Runtime/**",
+    "Execution/**",
+    "Parsing/**",
+    "TypeSystem/**",
+    "Compilation/**"
+  ],
+  "ignored_paths": [
+    "bin/**",
+    "obj/**",
+    "tests_visible/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "skills_tested": [
+    "inferring an undocumented contract from source code",
+    "finding unmentioned defects beyond the one reported symptom",
+    "off-by-one and boundary reasoning across multiple helper methods",
+    "distinguishing the hinted symptom from independent latent bugs"
+  ],
+  "root_cause_files": [
+    "Runtime/BuiltIns/MathBuiltIns.cs"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 1,
+  "broken_snapshot": "",
+  "gold_snapshot": ""
+}

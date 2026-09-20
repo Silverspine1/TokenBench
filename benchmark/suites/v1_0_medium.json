@@ -1,0 +1,16 @@
+{
+  "suite_id": "v1_0_medium",
+  "description": "V1.0 medium tier (~40-70% target): 6 two-bug medium bug-fixes + 3 single-feature implementations with genuine gotchas, across Go (mvm) + C# (sharpts). No websearch.",
+  "tasks": [
+    "benchmark/external_repos/sharpts/tasks/sharpts_roman_bug_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_bytes_bug_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_parseduration_bug_001/manifest.json",
+    "benchmark/external_repos/mvm/tasks/mvm_commafy_bug_001/manifest.json",
+    "benchmark/external_repos/mvm/tasks/mvm_expandrange_bug_001/manifest.json",
+    "benchmark/external_repos/mvm/tasks/mvm_romanto_bug_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_tobase_impl_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_csvrow_impl_001/manifest.json",
+    "benchmark/external_repos/mvm/tasks/mvm_numwords_impl_001/manifest.json"
+  ],
+  "required_trials": 3
+}

@@ -1,0 +1,33 @@
+{
+  "root_cause_files": ["stdlib/core/tbx.go"],
+  "extension_contract": "tbx.Commafy(n int) string formats an integer with comma thousands separators. Digits are grouped in threes counted from the RIGHT (1000 -> \"1,000\"; 1234567 -> \"1,234,567\"). Values with three or fewer digits get no comma (0 -> \"0\"; 42 -> \"42\"; 999 -> \"999\"). Negative values keep a single leading minus in front of the grouped magnitude (-1500 -> \"-1,500\"; -42 -> \"-42\"; -1234567 -> \"-1,234,567\"). The helper is two functions: tbxCommafy(n) dispatches the sign and delegates digit grouping to tbxGroup(s string).",
+  "injection_strategy": "Two coupled single-region defects in one new file stdlib/core/tbx.go, both symptoms surfaced in the prompt with examples. Fixing the obvious grouping bug alone leaves the negative-sign bug failing.",
+  "bugs": [
+    {
+      "id": "BUG_A",
+      "helper": "tbxGroup",
+      "hinted": true,
+      "defect": "Comma boundary is computed from the LEFT edge (`i % 3 == 0`) instead of from the right (`(len(s) - i) % 3 == 0`), so commas are inserted counting from the start of the digit string rather than the end.",
+      "symptom": "Grouping is misplaced for any value whose digit count is not a multiple of three: 1234 -> \"123,4\", 1000 -> \"100,0\", 1234567 -> \"123,456,7\". Two- and three-digit values happen to be unaffected. This is the obvious symptom; the prompt gives 1234 and 1234567 as examples."
+    },
+    {
+      "id": "BUG_B",
+      "helper": "tbxCommafy",
+      "hinted": true,
+      "defect": "For n < 0 the function returns tbxGroup(strconv.Itoa(-n)) — it negates n to get the magnitude but never re-attaches the leading minus, so the sign is silently dropped. The fix prepends \"-\" to the grouped magnitude.",
+      "symptom": "Negative numbers lose their sign: -42 -> \"42\", -1500 -> \"150,0\" (also shows BUG_A grouping), -1234567 -> \"123,456,7\". A careless fix that only corrects tbxGroup's boundary still drops the sign: -1500 would become \"1,500\", -42 would become \"42\"."
+    }
+  ],
+  "breakage_map": {
+    "BUG_A_checks": ["thousand", "four_digit", "million"],
+    "BUG_B_checks": ["neg_small", "neg_thousand", "neg_million"],
+    "controls_pass_in_broken": ["zero", "single", "two_digit", "three_digit", "round_hundred", "under_thousand"]
+  },
+  "expected_failure_summary": "Accepted (correct tbx.go) 12/12 = 1.000. Broken fails 6/12 (3 BUG_A grouping + 3 BUG_B negatives), passes 6 short non-negative controls -> 6/12 = 0.500, well below the 0.9 gate and inside the 0.4-0.6 medium band.",
+  "partial_fix_traps": [
+    "Fixing only the grouping boundary in tbxGroup (BUG_A) — the most obvious symptom — leaves the three negative checks failing because the sign is still dropped: 9/12 = 0.750, still below the gate.",
+    "Fixing only the sign handling (BUG_B) leaves the three positive grouping checks failing: 9/12 = 0.750.",
+    "Both the right-edge grouping and the leading-minus must be restored for a full pass; the two defects sit in two different functions in the same file."
+  ],
+  "note": "The bespoke tbx extension auto-registers because the harness blank-imports stdlib/core, whose init() populates stdlib.Values[\"tbx\"]. No other wiring is touched. The registration boilerplate in init() is outside both bug regions."
+}

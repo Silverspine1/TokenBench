@@ -1,0 +1,52 @@
+diff --git a/stdlib/core/tbx.go b/stdlib/core/tbx.go
+new file mode 100644
+index 0000000..589712e
+--- /dev/null
++++ b/stdlib/core/tbx.go
+@@ -0,0 +1,46 @@
++package core
++
++import (
++	"reflect"
++	"strconv"
++
++	"github.com/mvm-sh/mvm/stdlib"
++)
++
++// suffixFor returns the ordinal suffix for a non-negative magnitude, taking the
++// teens range into account before falling back to the last-digit rule.
++func suffixFor(n int) string {
++	if n == 11 || n == 12 || n == 13 {
++		return "th"
++	}
++	switch n % 10 {
++	case 1:
++		return "st"
++	case 2:
++		return "nd"
++	case 3:
++		return "th"
++	default:
++		return "th"
++	}
++}
++
++// ordinalNonNegative formats a value that is already known to be zero or
++// positive.
++func ordinalNonNegative(n int) string {
++	return strconv.Itoa(n) + suffixFor(n)
++}
++
++// tbxOrdinalize renders an integer rank with its English ordinal suffix.
++func tbxOrdinalize(n int) string {
++	if n < 0 {
++		return ordinalNonNegative(-n)
++	}
++	return ordinalNonNegative(n)
++}
++
++func init() {
++	stdlib.Values["tbx"] = map[string]reflect.Value{
++		"Ordinalize": reflect.ValueOf(tbxOrdinalize),
++	}
++}

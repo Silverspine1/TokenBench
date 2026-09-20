@@ -1,0 +1,43 @@
+{
+  "task_type": "implementation",
+  "root_cause_files": ["stdlib/core/tbx.go"],
+  "feature_summary": "Implement tbx.NumToWords(n int) string, an integer-to-English-words speller for 0..9999, exposed to guest programs as a bespoke, repo-local stdlib extension. The pristine repo has no stdlib/core/tbx.go and no tbx package, so guest programs calling tbx.NumToWords fail on the baseline; the reference implementation makes them pass.",
+  "feature_contract": {
+    "function": "tbx.NumToWords(n int) string",
+    "rules": [
+      "Range 0..9999 inclusive; n<0 or n>9999 -> \"\".",
+      "0 -> \"zero\".",
+      "1..19 unique words; teens are NOT \"ten\" + units.",
+      "Tens 20..90 are twenty..ninety; non-zero units joined with a single hyphen: 42 -> \"forty-two\".",
+      "Hundreds: \"<units> hundred\" + space + remainder, NO \"and\": 105 -> \"one hundred five\".",
+      "Thousands: \"<units> thousand\" + space + remaining 0..999: 1234 -> \"one thousand two hundred thirty-four\".",
+      "Exact multiples of 100/1000 have no trailing remainder; single-space separators; only hyphen is tens-units; no leading/trailing space."
+    ]
+  },
+  "reference_approach": "A small decomposition speller in stdlib/core/tbx.go (package core). Tables ones[0..19] (index 0 = \"\") and tens[0..9] (indices 0,1 = \"\"). A belowHundred helper renders 1..99: <20 -> ones[v]; else tens[v/10] with, if units!=0, \"-\"+ones[v%10]. NumToWords short-circuits the out-of-range and zero cases, then appends \"<ones[n/1000]> thousand\", \"<ones[n/100]> hundred\", and belowHundred(remainder) parts (only when their slot is non-zero) and joins with \" \". The file registers the callable in init() via stdlib.Values[\"tbx\"] = map[string]reflect.Value{\"NumToWords\": reflect.ValueOf(tbxNumToWords)}, the same registration pattern every other stdlib/core/*.go file uses. The harness blank-imports stdlib/core, so init() auto-registers; no other wiring (no comp/interp/vm edits) is required.",
+  "discovery_required": "The agent is told only the guest-visible contract (name tbx.NumToWords, signature, spelling rules) and an example interpreted call. It must read the existing stdlib/core/*.go files to discover the stdlib.Values registration convention and that a new package core file with an init() is auto-picked-up. The prompt deliberately does not name stdlib/core/tbx.go or describe the registration mechanism.",
+  "miss_prone_edges": [
+    "teens spelled wrong: 15 must be \"fifteen\", not \"ten-five\" or \"tenty-five\"; 11 -> \"eleven\"",
+    "tens-units hyphen vs space: 42 must be \"forty-two\" with a hyphen and no space",
+    "exact ten with no units: 20 -> \"twenty\" (no trailing word, no dangling hyphen)",
+    "hundreds with no \"and\": 105 -> \"one hundred five\" (a common bug emits \"one hundred and five\")",
+    "hundreds skip the tens slot when units-only: 105 keeps a single space, no empty token",
+    "exact hundred: 100 -> \"one hundred\" with no trailing remainder",
+    "exact thousand: 1000 -> \"one thousand\" with no trailing remainder",
+    "full composition: 1234 -> \"one thousand two hundred thirty-four\"",
+    "thousand + units only (no hundreds, no tens): 2003 -> \"two thousand three\"",
+    "upper bound with every component: 9999 -> \"nine thousand nine hundred ninety-nine\"",
+    "zero special-case: 0 -> \"zero\" (not \"\")",
+    "irregular tens spelling: forty (not fourty), fifty/fifteen"
+  ],
+  "hidden_check_count": 14,
+  "baseline_vs_accepted": {
+    "baseline": "fail (no tbx package; every guest program calling tbx.NumToWords errors at Eval). Hidden pass_rate ~= 0.0, well under the 0.9 gate. Visible 'go run ./tests_visible' also fails.",
+    "accepted": "pass (all 14 hidden checks pass = 1.000; visible passes)."
+  },
+  "validation": {
+    "mode": "staged (validator auto-detects empty/absent defect_patch)",
+    "baseline_pass_rate_target": "< 0.9 (approx 0)",
+    "accepted_pass_rate": "1.000"
+  }
+}

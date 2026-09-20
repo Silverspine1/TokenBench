@@ -1,0 +1,67 @@
+{
+  "task_id": "mvm_minilang_stage_2",
+  "repo_id": "mvm",
+  "repo_kind": "external_github",
+  "source_ref": "benchmark/external_repos/mvm/source.json",
+  "base_commit": "f0d101dad05ec263ed1f195bee51ff2f4a7a7925",
+  "defect_patch": "",
+  "private_notes_path": "private_notes.json",
+  "mode": "atomic",
+  "category": "staged_implementation",
+  "difficulty": "hard",
+  "stage": 2,
+  "stage_group_id": "mvm_minilang",
+  "previous_stage_task_id": "mvm_minilang_stage_1",
+  "input_source": "previous_candidate",
+  "issue_title": "Add strings to the mini-language: literals, concat, len, upper",
+  "issue_body": "Building on the integer mini-language exposed as tbx.Run, add a string data type. Strings must thread through the whole language alongside integers; every existing numeric behaviour from the first stage must keep working unchanged.\n\nNew capabilities:\n  - String literals written with double quotes: \"hello\". Two escape sequences are supported inside a literal: \\\" for a double quote and \\n for a newline.\n  - The + operator becomes type-aware: integer + integer adds (as before); string + string concatenates; mixing an integer and a string is a type error. On a type error tbx.Run returns a single 'error: <msg>' line (exact message text is your choice; only the 'error: ' prefix matters).\n  - print of a string outputs its raw character content (no surrounding quotes).\n  - Two builtin functions, each taking one argument: len(x) returns the length of a string as an integer; upper(x) returns the string with its characters upper-cased.\n\nThe other operators (-, *, /) and unary minus remain integer-only. All of stage one's behaviour (let, print, integer arithmetic, precedence, parentheses, unary minus, truncating division, whitespace, undefined-variable and parse errors) must continue to hold exactly as before, and integers and strings must be able to coexist in the same program.\n\nKeep the implementation a clean multi-file package and continue to expose everything through tbx.Run(src string) string.",
+  "prompt": "Extend the existing mini-language interpreter (exposed as tbx.Run(src string) string) by adding a string data type. Strings must integrate with the language alongside integers, and every numeric behaviour from the first stage must keep working exactly as before.\n\nAdd:\n- String literals in double quotes: \"hello\". Inside a literal, support two escapes: \\\" for a double quote and \\n for a newline.\n- A type-aware + operator: integer + integer adds (as before); string + string concatenates; mixing an integer and a string is a type error. On a type error, tbx.Run returns a single 'error: <msg>' line (message text is your choice; only the 'error: ' prefix matters).\n- print of a string outputs its raw character content, with no surrounding quotes.\n- Two single-argument builtins: len(x) returns the length of a string as an integer, and upper(x) returns the string upper-cased.\n\nThe operators -, *, / and unary minus stay integer-only. Everything from the first stage (let, print, integer arithmetic with precedence and associativity, parentheses, unary minus, truncating integer division, whitespace handling, and the undefined-variable / parse-error reporting) must still behave identically, and integers and strings must coexist within one program. Keep the implementation a clean multi-file package and continue exposing it through tbx.Run.",
+  "expected_behavior": [
+    "All stage-one numeric behaviour still works: let, print, integer + - * / with correct precedence and associativity, parentheses, unary minus, truncating division, whitespace, and 'error: <msg>' for undefined variables and parse failures.",
+    "String literals with \\\" and \\n escapes parse and print their raw content.",
+    "string + string concatenates; integer + integer still adds; mixing an integer and a string yields a single 'error: <msg>' line.",
+    "len(s) returns the string length as an integer and upper(s) returns the upper-cased string.",
+    "Integers and strings can be used together in the same program."
+  ],
+  "visible_commands": [
+    "go run ./tests_visible"
+  ],
+  "hidden_commands": [
+    "python benchmark/external_repos/mvm/hidden_driver.py benchmark/external_repos/mvm/tasks/mvm_minilang_stage_2/hidden_tests"
+  ],
+  "allowed_runtime_seconds": 1200,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "minilang/**",
+    "stdlib/**",
+    "vm/**",
+    "comp/**",
+    "interp/**"
+  ],
+  "ignored_paths": [
+    "tests_visible/**",
+    "tbhidden/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "skills_tested": [
+    "threading a new value type through an existing lexer, parser, and evaluator",
+    "lexing quoted string literals with escape sequences",
+    "type-aware operator overloading and type-error reporting",
+    "registering builtin functions in the parser and evaluator",
+    "preserving carried-over behaviour while extending a language"
+  ],
+  "root_cause_files": [
+    "minilang/lexer.go",
+    "minilang/value.go",
+    "minilang/parser.go",
+    "minilang/interp.go"
+  ],
+  "expected_changed_files_min": 4,
+  "expected_changed_files_max": 12,
+  "broken_snapshot": "",
+  "gold_snapshot": ""
+}

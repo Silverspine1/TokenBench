@@ -1,0 +1,82 @@
+[
+  {
+    "name": "carried-over: arithmetic precedence still works",
+    "program": "h1.ts",
+    "exact": "14"
+  },
+  {
+    "name": "carried-over: real division still works",
+    "program": "h2.ts",
+    "exact": "3.5"
+  },
+  {
+    "name": "carried-over: unary minus and grouping still work",
+    "program": "h3.ts",
+    "exact": "-5"
+  },
+  {
+    "name": "carried-over: number+number addition still works",
+    "program": "h4.ts",
+    "exact": "7"
+  },
+  {
+    "name": "string literal prints its raw content",
+    "program": "h5.ts",
+    "exact": "hello"
+  },
+  {
+    "name": "string + string concatenates",
+    "program": "h6.ts",
+    "exact": "foobar"
+  },
+  {
+    "name": "string concatenation through variables",
+    "program": "h7.ts",
+    "exact": "Hello, world"
+  },
+  {
+    "name": "len returns the string length as a number",
+    "program": "h8.ts",
+    "exact": "5"
+  },
+  {
+    "name": "upper uppercases a string",
+    "program": "h9.ts",
+    "exact": "HELLO"
+  },
+  {
+    "name": "len result is a number usable in arithmetic",
+    "program": "h10.ts",
+    "exact": "5"
+  },
+  {
+    "name": "upper composes with concatenation",
+    "program": "h11.ts",
+    "exact": "ABCD"
+  },
+  {
+    "name": "escaped double quote in a string literal",
+    "program": "h12.ts",
+    "exact": "say \"hi\""
+  },
+  {
+    "name": "newline escape produces a real newline",
+    "program": "h13.ts",
+    "exact": "a\nb"
+  },
+  {
+    "name": "number + string is a type error",
+    "program": "h14.ts",
+    "exact": "error: cannot add number and string"
+  },
+  {
+    "name": "string + number is a type error",
+    "program": "h15.ts",
+    "exact": "error: cannot add string and number"
+  },
+  {
+    "name": "upper leaves digits and spaces, uppercases letters",
+    "program": "h16.ts",
+    "exact": "MIXED 123"
+  }
+]

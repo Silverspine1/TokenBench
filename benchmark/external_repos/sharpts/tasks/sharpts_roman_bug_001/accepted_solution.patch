@@ -1,0 +1,24 @@
+diff --git a/Runtime/BuiltIns/MathBuiltIns.cs b/Runtime/BuiltIns/MathBuiltIns.cs
+index 9dd04d4..0642ef0 100644
+--- a/Runtime/BuiltIns/MathBuiltIns.cs
++++ b/Runtime/BuiltIns/MathBuiltIns.cs
+@@ -94,7 +94,7 @@ public static class MathBuiltIns
+     private static string Roman(double value)
+     {
+         int n = (int)value;
+-        if (n < 1)
++        if (n < 1 || n > 3999)
+         {
+             return string.Empty;
+         }
+@@ -122,8 +122,8 @@ public static class MathBuiltIns
+         switch (digit)
+         {
+             case 9:
+-                sb.Append(five);
+-                for (int i = 0; i < 4; i++) sb.Append(one);
++                sb.Append(one);
++                sb.Append(ten);
+                 break;
+             case 8:
+             case 7:

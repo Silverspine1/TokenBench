@@ -1,0 +1,48 @@
+{
+  "task_id": "mvm_minilang_stage_1",
+  "stage": 1,
+  "stage_group_id": "mvm_minilang",
+  "summary": "Stage 1 of a two-stage large implementation group. The agent builds a bespoke integer mini-language interpreter as a new multi-file Go package (minilang/) and exposes it to guest programs as tbx.Run(src string) string, registered into stdlib.Values[\"tbx\"] from a new stdlib/core/tbx.go (the harness blank-imports stdlib/core).",
+  "reference_subsystem_files": [
+    "minilang/token.go",
+    "minilang/errors.go",
+    "minilang/lexer.go",
+    "minilang/ast.go",
+    "minilang/value.go",
+    "minilang/env.go",
+    "minilang/parser.go",
+    "minilang/interp.go",
+    "stdlib/core/tbx.go"
+  ],
+  "language_contract": {
+    "program": "statements separated by newline or ';'; blank statements ignored",
+    "statements": ["let <ident> = <expr>", "print <expr>"],
+    "expressions": "non-negative int literals, variables, + - * / with standard precedence and left-associativity, parentheses (nestable), unary minus in any position",
+    "division": "integer, truncates toward zero (Go int division): 7/2 -> 3, -7/2 -> -3",
+    "whitespace": "ignored inside a statement",
+    "output": "print lines joined with a single '\\n', no trailing newline",
+    "errors": "undefined variable or parse failure -> single line 'error: <msg>'; only the 'error: ' prefix is contractually fixed"
+  },
+  "registration": "Guest import path is \"tbx\", callable \"Run\". stdlib/core/tbx.go does stdlib.Values[\"tbx\"] = map[string]reflect.Value{\"Run\": reflect.ValueOf(tbxRun)} in init(); tbxRun delegates to minilang.Run. The agent discovers this pattern by reading the existing core stdlib (e.g. the calc task / other core files).",
+  "hidden_checks": {
+    "total": 19,
+    "groups": [
+      "arithmetic + precedence (add, precedence, parens, nested_parens)",
+      "left-associativity (left_sub, left_div)",
+      "unary minus in positions (unary_neg, unary_mid, unary_mul)",
+      "truncating division incl. negative (trunc1, trunc2, trunc_neg)",
+      "whitespace handling (whitespace)",
+      "let / multi-statement / semicolons / multi-print (let_use, let_chain, semicolons, multi_print)",
+      "error reporting (undef_var, parse_err)"
+    ]
+  },
+  "expected_results": {
+    "baseline_pristine_pass_rate": "≈0.0 (no minilang package, no tbx.Run; guest programs cannot import tbx)",
+    "accepted_pass_rate": "1.000 (19/19)"
+  },
+  "difficulty_levers": "Large surface area: a full lexer/parser/evaluator across ~8-10 files, correct precedence/associativity, truncating division semantics, and discovering the reflect-based stdlib registration. The genuinely multi-file design is what stretches weaker models.",
+  "validation": {
+    "command": "python scripts/validate_external_task.py benchmark/external_repos/mvm/tasks/mvm_minilang_stage_1/manifest.json --timeout 1200",
+    "expect": "baseline < 0.9, accepted = 1.000, VERDICT PASS"
+  }
+}

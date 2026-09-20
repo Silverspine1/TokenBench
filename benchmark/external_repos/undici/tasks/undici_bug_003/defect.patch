@@ -1,0 +1,13 @@
+--- a/lib/api/api-request.js
++++ b/lib/api/api-request.js
+@@ -60,9 +60,7 @@ class RequestHandler extends AsyncResource {
+     this.reason = null
+     this.removeAbortListener = null
+
+-    if (signal?.aborted) {
+-      this.reason = signal.reason ?? new RequestAbortedError()
+-    } else if (signal) {
++    if (signal && !signal.aborted) {
+       this.removeAbortListener = util.addAbortListener(signal, () => {
+         this.reason = signal.reason ?? new RequestAbortedError()
+         if (this.res) {

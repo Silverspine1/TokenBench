@@ -1,0 +1,57 @@
+{
+  "task_id": "undici_redirect_body_001",
+  "repo_id": "undici",
+  "repo_kind": "external_github",
+  "source_ref": "benchmark/external_repos/undici/source.json",
+  "base_commit": "01444a164dd97d2719131fdf69accaaed5a5a906",
+  "defect_patch": "defect.patch",
+  "private_notes_path": "private_notes.json",
+  "mode": "atomic",
+  "category": "bugfix",
+  "difficulty": "hard",
+  "issue_title": "Redirected requests mishandle method, body, and headers for some status codes",
+  "issue_body": "Following an HTTP redirect does not always reshape the request the way the redirect status requires. For some redirect responses a POST is downgraded and its body is discarded when the method and body should have been carried through unchanged. Separately, a redirect that is supposed to be re-issued as a plain GET still forwards request headers that describe the original payload, so the redirected request carries header information that no longer applies. Other redirect responses behave correctly. The public method/body and request-header outcome should match the documented behavior for each redirect status.",
+  "prompt": "Following an HTTP redirect does not always reshape the request the way the redirect status requires. For some redirect responses a POST is downgraded and its body is discarded when the method and body should have been carried through unchanged. Separately, a redirect that is supposed to be re-issued as a plain GET still forwards request headers that describe the original payload, so the redirected request carries header information that no longer applies. Other redirect responses behave correctly. The public method/body and request-header outcome should match the documented behavior for each redirect status.",
+  "expected_behavior": [
+    "301 and 302 redirects of a POST become GET with no body.",
+    "303 redirects become GET with no body and drop payload-describing request headers.",
+    "307 and 308 redirects preserve the original method and body.",
+    "307 and 308 redirects preserve payload-describing request headers.",
+    "A redirected GET stays a GET.",
+    "Behavior is consistent across all redirect status codes, not just the most common ones."
+  ],
+  "visible_commands": [
+    "node --test tests_visible/test_visible.js"
+  ],
+  "hidden_commands": [
+    "node benchmark/external_repos/undici/tasks/undici_redirect_body_001/hidden_tests/test_hidden.js"
+  ],
+  "allowed_runtime_seconds": 300,
+  "allowed_network": false,
+  "dependency_policy": "preinstalled_only",
+  "scored_paths": [
+    "lib/**",
+    "index.js"
+  ],
+  "ignored_paths": [
+    "test/**",
+    "docs/**"
+  ],
+  "forbidden_paths": [
+    "benchmark/**",
+    ".tokenbench/**"
+  ],
+  "skills_tested": [
+    "HTTP redirect semantics",
+    "method/body transition",
+    "request header cleanup",
+    "multi-path consistency"
+  ],
+  "root_cause_files": [
+    "lib/handler/redirect-handler.js"
+  ],
+  "expected_changed_files_min": 1,
+  "expected_changed_files_max": 2,
+  "broken_snapshot": "",
+  "gold_snapshot": ""
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "name": "single-digit minutes as first unit is not padded",
+    "program": "d1.ts",
+    "exact": "1m 05s"
+  },
+  {
+    "name": "single-digit minutes first unit with seconds padded",
+    "program": "d2.ts",
+    "exact": "2m 05s"
+  },
+  {
+    "name": "single-digit seconds as only unit is not padded",
+    "program": "d3.ts",
+    "exact": "5s"
+  },
+  {
+    "name": "single-digit seconds as only unit stays bare",
+    "program": "d4.ts",
+    "exact": "9s"
+  },
+  {
+    "name": "zero minutes between hours and seconds is shown",
+    "program": "d5.ts",
+    "exact": "1h 00m 00s"
+  },
+  {
+    "name": "zero middle minutes shown for whole hours",
+    "program": "d6.ts",
+    "exact": "2h 00m 00s"
+  },
+  {
+    "name": "zero middle minutes shown for many hours",
+    "program": "d7.ts",
+    "exact": "10h 00m 00s"
+  },
+  {
+    "name": "negative input returns zero seconds",
+    "program": "d8.ts",
+    "exact": "0s"
+  },
+  {
+    "name": "small negative input returns zero seconds",
+    "program": "d9.ts",
+    "exact": "0s"
+  },
+  {
+    "name": "hours minutes seconds all present (control)",
+    "program": "d10.ts",
+    "exact": "1h 01m 01s"
+  },
+  {
+    "name": "hours with single-digit minutes and seconds padded (control)",
+    "program": "d11.ts",
+    "exact": "1h 02m 05s"
+  },
+  {
+    "name": "two-digit minutes and seconds (control)",
+    "program": "d12.ts",
+    "exact": "10m 10s"
+  }
+]

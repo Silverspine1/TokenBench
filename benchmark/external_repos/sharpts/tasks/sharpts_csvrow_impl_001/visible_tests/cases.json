@@ -1,0 +1,7 @@
+[
+  {
+    "name": "plain comma-separated fields join with a pipe",
+    "program": "v1.ts",
+    "exact": "a|b|c"
+  }
+]

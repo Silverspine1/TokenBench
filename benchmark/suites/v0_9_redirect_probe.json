@@ -1,0 +1,8 @@
+{
+  "suite_id": "v0_9_redirect_probe",
+  "description": "hard redirect probe",
+  "tasks": [
+    "benchmark/external_repos/undici/tasks/undici_redirect_body_001/manifest.json"
+  ],
+  "required_trials": 1
+}

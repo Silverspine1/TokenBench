@@ -1,0 +1,7 @@
+[
+  {
+    "name": "thirty minutes is 1800 seconds",
+    "program": "v1.ts",
+    "exact": "1800"
+  }
+]

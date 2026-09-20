@@ -14,7 +14,7 @@ Each task ships as:
 - **hidden tests** the agent's patch is graded against (`benchmark/tests/**`)
 
 Tasks span several language ecosystems: Go (`bizflow-go-sql`), C++ (`logforge-cpp`),
-Python/ML (`marketlab-ml`), PHP (`paygate-php-portal`), a Tauri/Rust desktop app (`vaultdesk-tauri`), and a Node/TS SaaS app (`pulseboard-saas`). The official scored bank is 55 tasks (the shorter tasks were cut from the bank). This repository ships 64 task manifests across the six in-house repo families - 56 scored task groups, since 8 staged pairs contribute a stage-1 and stage-2 half each - selected by the suites under `benchmark/suites/`. Real-world external-repo tasks are not redistributed with this repo - build your own from an upstream checkout (see External-repo tasks below).
+Python/ML (`marketlab-ml`), PHP (`paygate-php-portal`), a Tauri/Rust desktop app (`vaultdesk-tauri`), a Node/TS SaaS app (`pulseboard-saas`), plus external real-world repos under `benchmark/external_repos/` (Python/Datasette, JS/undici, Go/mvm, C#/SharpTS). The official scored bank is 55 tasks; the shorter tasks were cut from the bank because they mostly show variance, not actual savings.
 
 ## Prerequisites
 
@@ -23,13 +23,14 @@ Python/ML (`marketlab-ml`), PHP (`paygate-php-portal`), a Tauri/Rust desktop app
   (`benchmark/agents/*.json`) target Claude Code (`npm install -g @anthropic-ai/claude-code`
   or equivalent, logged in with your own Anthropic account/API access).
 - Per-repo-family toolchains, only needed for the repos you actually run:
-  - Go (`bizflow-go-sql`) — a working `go` on `PATH`
+  - Go (`bizflow-go-sql`, `mvm`) — a working `go` on `PATH`
   - C++ (`logforge-cpp`) — a C++17 compiler (`g++`/`clang++`) on `PATH`
   - PHP 8.3 (`paygate-php-portal`) — `php` on `PATH`
   - Rust + Tauri build deps (`vaultdesk-tauri`) — `cargo` on `PATH`, plus a MinGW/MSVC
     toolchain on Windows
-  - Node.js (`pulseboard-saas`) — `node`/`npm` on `PATH`
-  - Python 3 (`marketlab-ml`) — no extra toolchain beyond your interpreter
+  - .NET SDK (`sharpts`) - `dotnet` on `PATH`
+  - Node.js (`pulseboard-saas`, `undici`) — `node`/`npm` on `PATH`
+  - Python 3 (`marketlab-ml`, `datasette`) — no extra toolchain beyond your interpreter
 
 Task validation (`doctor-task`/`doctor-suite`) looks for these tools on `PATH` (or via a
 tool-specific env var like `CARGO`/`PHP`/`CXX`/`NODE`); tasks for a toolchain you don't
@@ -47,22 +48,6 @@ pip install -e ".[dev]"
 
 This installs the `tokenbench` CLI (entry point defined in `pyproject.toml`).
 
-## External-repo tasks
-
-Real-world repository tasks are not redistributed with this repo; only the
-in-house task repos ship their snapshots. Point the CLI at your own checkout of
-an upstream project to build an external task family locally, then validate it:
-
-```bash
-tokenbench external-repo --source <path-to-checkout> --out benchmark/external_repos/<name>
-tokenbench doctor-external-repo benchmark/external_repos/<name>
-tokenbench doctor-external-task benchmark/external_repos/<name>/tasks/<task>/manifest.json
-```
-
-The suites shipped here cover the in-house task bank and run out of the box.
-Suites covering external task families belong to the fuller internal bank and
-are not redistributed.
-
 ## Validate a task or suite
 
 Before running anything, check that a task (or a whole suite) is internally consistent —
@@ -71,7 +56,7 @@ answer:
 
 ```bash
 tokenbench doctor-task benchmark/manifests/marketlab-ml/marketlab_split_leakage_001.json
-tokenbench doctor-suite benchmark/suites/v0_8_combined.json
+tokenbench doctor-suite benchmark/suites/v1_0_all_atomic.json
 ```
 
 ## Run a single task
@@ -91,7 +76,7 @@ treatment condition).
 ## Run a whole suite
 
 ```bash
-tokenbench run-suite benchmark/suites/v0_6_go_cpp.json \
+tokenbench run-suite benchmark/suites/v1_0_all_atomic.json \
   --agent claude_code_sonnet \
   --condition sonnet_base \
   --max-concurrency 4

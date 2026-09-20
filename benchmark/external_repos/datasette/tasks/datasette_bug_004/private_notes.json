@@ -1,0 +1,6 @@
+{
+  "root_cause_files": ["datasette/app.py"],
+  "injection_strategy": "Swapped the order of (config_settings) and (settings or {}) in the dict merge that builds self._settings. In the correct code, settings (CLI/constructor) is the last argument and thus wins over config_settings. In the broken code, config_settings is last and wins over CLI settings.",
+  "expected_failure_summary": "When a setting is provided in both datasette.json and via the settings constructor parameter (CLI), the datasette.json value takes effect instead of the explicitly passed value. The comment in the code even says 'CLI settings should overwrite' but the implementation now reverses this.",
+  "calibration_notes": "Hard difficulty: the change is a single reorder of arguments in one dict() call. Model must understand Python dict merge semantics (later keys win) and find the correct line among several dict usages in __init__."
+}

@@ -1,0 +1,83 @@
+diff --git a/stdlib/core/tbx.go b/stdlib/core/tbx.go
+new file mode 100644
+index 0000000..6f9e521
+--- /dev/null
++++ b/stdlib/core/tbx.go
+@@ -0,0 +1,77 @@
++package core
++
++import (
++	"reflect"
++	"strings"
++
++	"github.com/mvm-sh/mvm/stdlib"
++)
++
++// tbxNumToWords converts an integer in 0..9999 to its lowercase English-words
++// spelling. Values outside that range return "".
++//
++// Rules:
++//   - 0 -> "zero".
++//   - 1..19 use unique words ("one".."nineteen"); the teens are NOT composed
++//     from "ten" plus a units word.
++//   - The tens 20,30,...,90 are "twenty".."ninety"; a non-zero units digit is
++//     joined with a single hyphen: 42 -> "forty-two".
++//   - Hundreds read as "<units> hundred" with the remainder appended after a
++//     space and NO "and": 105 -> "one hundred five", 999 -> "nine hundred
++//     ninety-nine". An exact multiple of 100 has no trailing remainder.
++//   - Thousands read as "<units> thousand" with the remaining 0..999 appended
++//     after a space: 1234 -> "one thousand two hundred thirty-four". An exact
++//     multiple of 1000 has no trailing remainder.
++func tbxNumToWords(n int) string {
++	if n < 0 || n > 9999 {
++		return ""
++	}
++	if n == 0 {
++		return "zero"
++	}
++
++	ones := []string{
++		"", "one", "two", "three", "four", "five", "six", "seven", "eight",
++		"nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
++		"sixteen", "seventeen", "eighteen", "nineteen",
++	}
++	tens := []string{
++		"", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy",
++		"eighty", "ninety",
++	}
++
++	// belowHundred renders 1..99 (never called with 0).
++	belowHundred := func(v int) string {
++		if v < 20 {
++			return ones[v]
++		}
++		t := tens[v/10]
++		u := v % 10
++		if u == 0 {
++			return t
++		}
++		return t + "-" + ones[u]
++	}
++
++	var parts []string
++
++	if n >= 1000 {
++		parts = append(parts, ones[n/1000]+" thousand")
++		n %= 1000
++	}
++	if n >= 100 {
++		parts = append(parts, ones[n/100]+" hundred")
++		n %= 100
++	}
++	if n > 0 {
++		parts = append(parts, belowHundred(n))
++	}
++
++	return strings.Join(parts, " ")
++}
++
++func init() {
++	stdlib.Values["tbx"] = map[string]reflect.Value{
++		"NumToWords": reflect.ValueOf(tbxNumToWords),
++	}
++}

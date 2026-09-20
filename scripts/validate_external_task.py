@@ -16,7 +16,8 @@ Usage:
       [--gate 0.9] [--keep] [--timeout 300]
 
 Examples:
-  python scripts/validate_external_task.py benchmark/external_repos/<name>/tasks/<task>/manifest.json --setup "pip install -e . -q"
+  python scripts/validate_external_task.py benchmark/external_repos/undici/tasks/undici_redirect_body_001/manifest.json
+  python scripts/validate_external_task.py .../datasette_bug_001/manifest.json --setup "pip install -e . -q"
 """
 
 from __future__ import annotations

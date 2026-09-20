@@ -1,0 +1,12 @@
+{
+  "root_cause_files": ["lib/handler/redirect-handler.js"],
+  "injection_strategy": "Two coupled regressions in the redirect handler, in two distinct logical layers of the same file: (A) onResponseStart adds 307 and 308 to the 301/302 method-change branch, so those redirects wrongly downgrade POST to GET and drop the body; (B) the cleanRequestHeaders call passes a hardcoded false instead of statusCode === 303, so a 303 redirect no longer strips Content-* request headers.",
+  "file_count_justification": "Defect is one file because redirect method/body policy and the request-header cleanup policy both live in lib/handler/redirect-handler.js, but they are two independent layers (the onResponseStart transition logic vs the cleanRequestHeaders header policy). A fix to only one layer passes the visible test and ~80% of hidden checks but fails the other layer's checks (<0.9 gate).",
+  "behavior_paths": ["method/body transition across 301/302/303/307/308", "Content-* request-header cleanup on 303"],
+  "partial_fix_traps": [
+    "Fixing only the 307/308 method/body branch leaves 303 Content-* stripping broken (3 checks fail).",
+    "Fixing only the 303 header cleanup leaves 307/308 body/method broken (4 checks fail).",
+    "Handling only the redirect type named by the symptom leaves the others failing."
+  ],
+  "expected_failure_summary": "Gold 16/16; both-facets-broken 9/16; fix-A-only 13/16 (0.81); fix-B-only 12/16 (0.75) — both partial fixes fall below the 0.9 hidden gate."
+}

@@ -1,0 +1,6 @@
+{
+  "root_cause_files": [],
+  "injection_strategy": "No defect injection. This is a Stage 2 extension task building on Stage 1's AutoRetryHandler. The model must extend its own prior implementation.",
+  "expected_failure_summary": "No file to break. Stage 2 requires adding onRetry callback support (called on each retry with retryCount and statusCode) and AbortSignal support that cancels pending retryDelayMs timeouts. Models that hardcoded Stage 1 without clean extension points will struggle here.",
+  "calibration_notes": "Hard: tests Stage 1 architectural cleanliness. onRetry callback is straightforward; AbortSignal cancelling a setTimeout requires signal.addEventListener('abort', ...) + clearTimeout. Stage 2 acceptance rate expected ~25-45%."
+}

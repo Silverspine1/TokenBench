@@ -1,0 +1,20 @@
+--- a/lib/handler/redirect-handler.js
++++ b/lib/handler/redirect-handler.js
+@@ -55,7 +55,7 @@ class RedirectHandler {
+     // https://tools.ietf.org/html/rfc7231#section-6.4.2
+     // https://fetch.spec.whatwg.org/#http-redirect-fetch
+     // In case of HTTP 301 or 302 with POST, change the method to GET
+-    if ((statusCode === 301 || statusCode === 302 || statusCode === 307 || statusCode === 308) && this.opts.method === 'POST') {
++    if ((statusCode === 301 || statusCode === 302) && this.opts.method === 'POST') {
+       this.opts.method = 'GET'
+       if (util.isStream(this.opts.body)) {
+         util.destroy(this.opts.body.on('error', noop))
+@@ -102,7 +102,7 @@ class RedirectHandler {
+     // Remove headers referring to the original URL.
+     // By default it is Host only, unless it's a 303 (see below), which removes also all Content-* headers.
+     // https://tools.ietf.org/html/rfc7231#section-6.4
+-    this.opts.headers = cleanRequestHeaders(this.opts.headers, false, this.opts.origin !== origin, this.stripHeadersOnRedirect, this.stripHeadersOnCrossOriginRedirect)
++    this.opts.headers = cleanRequestHeaders(this.opts.headers, statusCode === 303, this.opts.origin !== origin, this.stripHeadersOnRedirect, this.stripHeadersOnCrossOriginRedirect)
+     this.opts.path = path
+     this.opts.origin = origin
+     this.opts.query = null

@@ -1,0 +1,12 @@
+{
+  "suite_id": "v1_0_novel_bugfix",
+  "description": "V1.0 novel post-cutoff-repo bug-fix tasks (mvm Go + sharpts C#). Built to defeat training-data priors; models run with no websearch. Haiku/Opus calibration.",
+  "tasks": [
+    "benchmark/external_repos/mvm/tasks/mvm_value_equality_001/manifest.json",
+    "benchmark/external_repos/mvm/tasks/mvm_unsigned_compare_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_relational_compare_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_default_sort_001/manifest.json",
+    "benchmark/external_repos/sharpts/tasks/sharpts_string_slice_001/manifest.json"
+  ],
+  "required_trials": 1
+}
