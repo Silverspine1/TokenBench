@@ -1,7 +1,0 @@
-[
-  {
-    "name": "255 formatted in base 16 is ff",
-    "program": "v1.ts",
-    "exact": "ff"
-  }
-]

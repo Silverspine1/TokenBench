@@ -1,7 +1,0 @@
-[
-  {
-    "name": "a duration is formatted",
-    "program": "v1.ts",
-    "exact": "1m 05s"
-  }
-]

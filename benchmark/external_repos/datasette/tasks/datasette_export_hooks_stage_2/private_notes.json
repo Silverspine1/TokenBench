@@ -1,8 +1,0 @@
-{
-  "task_type": "staged_implementation",
-  "stage": 2,
-  "stage_group_id": "datasette_export_transform_hooks",
-  "implementation_notes": "Stage 2 adds export_rows_transform hookspec that receives a list of row dicts. The caller should check if any plugin implements export_rows_transform; if so, pass the batch. Otherwise fall back to calling export_row_transform per-row. This tests whether Stage 1 isolated the transform step cleanly (easy extension) vs hardcoded it (requires surgery).",
-  "accepted_solution_notes": "Add hookspec export_rows_transform(database, table, rows, export_format). In the caller, check hook implementations: if any implements export_rows_transform, call that. Otherwise loop and call export_row_transform. The batch path should handle pages naturally.",
-  "calibration_notes": "Frontier hard: model must extend Stage 1 cleanly. If Stage 1 was poorly implemented (transform inline in many places), this requires rewriting. If Stage 1 isolated a transform step, this is straightforward."
-}

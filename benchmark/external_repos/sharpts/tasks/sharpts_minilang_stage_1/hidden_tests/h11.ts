@@ -1,1 +1,0 @@
-console.log(Math.run("let a = 3; let b = 4; print a + b"))

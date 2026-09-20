@@ -1,6 +1,0 @@
-{
-  "root_cause_files": ["index.js"],
-  "injection_strategy": "Removed the `module.exports.DecoratorHandler = DecoratorHandler` line from index.js. DecoratorHandler is still available via require('./lib/handler/decorator-handler') but is not accessible as require('undici').DecoratorHandler.",
-  "expected_failure_summary": "require('undici').DecoratorHandler returns undefined. Any code using the top-level export breaks with a TypeError at instantiation time.",
-  "calibration_notes": "Easy: model must find index.js and re-add the missing export line."
-}

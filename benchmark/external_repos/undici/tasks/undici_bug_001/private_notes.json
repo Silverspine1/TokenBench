@@ -1,6 +1,0 @@
-{
-  "root_cause_files": ["lib/handler/redirect-handler.js"],
-  "injection_strategy": "In cleanRequestHeaders, removed the shouldRemoveHeader check for the object-form header path. Array-form headers still go through the check correctly, but object-form headers now skip filtering entirely — all headers including authorization and cookie are forwarded on redirects.",
-  "expected_failure_summary": "Object-form headers bypass header stripping on redirect. Authorization, cookie, proxy-authorization are sent to the redirect target even on cross-origin redirects.",
-  "calibration_notes": "Medium difficulty: model must find cleanRequestHeaders in redirect-handler.js and see that the object path is missing the shouldRemoveHeader guard that the array path has."
-}

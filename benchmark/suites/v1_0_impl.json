@@ -1,9 +1,0 @@
-{
-  "suite_id": "v1_0_impl",
-  "description": "V1.0 implementation tier: implement a bespoke expression-evaluator built-in from scratch (Go tbx.Calc + C# Math.calc). Agent must discover the codebase registration mechanism and handle precedence/parens/unary-minus/associativity edge cases. No websearch. Haiku calibration (3 trials).",
-  "tasks": [
-    "benchmark/external_repos/sharpts/tasks/sharpts_calc_impl_001/manifest.json",
-    "benchmark/external_repos/mvm/tasks/mvm_calc_impl_001/manifest.json"
-  ],
-  "required_trials": 3
-}

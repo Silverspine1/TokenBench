@@ -1,6 +1,0 @@
-{
-  "root_cause_files": ["lib/handler/redirect-handler.js"],
-  "injection_strategy": "Added 307 to the condition that changes POST to GET and drops the body. Per RFC 7231, 307 must preserve method and body. The bug treats 307 like 301/302 and incorrectly drops the body.",
-  "expected_failure_summary": "POST requests receiving 307 redirects have their body dropped and method changed to GET. Tests expecting the body to be re-submitted on 307 will fail.",
-  "calibration_notes": "Medium difficulty: model must know RFC 7231 section 6.4 semantics for 307 vs 301/302, find the condition in onResponseStart, and remove 307 from it."
-}

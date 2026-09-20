@@ -1,8 +1,0 @@
-{
-  "suite_id": "v0_9_b2_probe",
-  "description": "bug_002 comment-stripped probe",
-  "tasks": [
-    "benchmark/external_repos/undici/tasks/undici_bug_002/manifest.json"
-  ],
-  "required_trials": 1
-}

@@ -1,8 +1,0 @@
-{
-  "suite_id": "v0_9_d1_probe",
-  "description": "d1 subtle-bug probe",
-  "tasks": [
-    "benchmark/external_repos/datasette/tasks/datasette_bug_001/manifest.json"
-  ],
-  "required_trials": 1
-}

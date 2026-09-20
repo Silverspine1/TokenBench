@@ -1,8 +1,0 @@
-{
-  "suite_id": "v1_0_rerun_caveman",
-  "description": "Re-run of irregular sonnet_caveman result: tobase impl task.",
-  "tasks": [
-    "benchmark/external_repos/sharpts/tasks/sharpts_tobase_impl_001/manifest.json"
-  ],
-  "required_trials": 1
-}

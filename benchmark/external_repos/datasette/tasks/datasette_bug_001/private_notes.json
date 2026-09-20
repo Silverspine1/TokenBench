@@ -1,7 +1,0 @@
-{
-  "root_cause_files": ["datasette/views/table.py"],
-  "injection_strategy": "Changed rows[-2] to rows[-1] in the PK cursor calculation inside _next_value_and_url. The function receives len=page_size+1 rows; rows[-2] is the last visible row (correct cursor), rows[-1] is the first row of the next page (incorrect). This causes the next page to start one row too late, skipping one row per page boundary.",
-  "expected_failure_summary": "Paginated tables skip one row at each page boundary when using PK-based navigation (non-view tables). The last row of page N is duplicated as the first expected row of page N+1 but never appears.",
-  "calibration_notes": "Medium difficulty: model must understand that rows has page_size+1 entries and that -2 vs -1 indexing matters here. The off-by-one is subtle enough to miss without reading the full function.",
-  "hidden_edge_case_notes": "Test both: table with exact page_size rows (no next page), table with page_size+1 rows (one next page with 1 row). Also test that is_view=True offset pagination is unaffected."
-}

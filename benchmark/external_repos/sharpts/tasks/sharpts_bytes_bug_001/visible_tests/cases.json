@@ -1,7 +1,0 @@
-[
-  {
-    "name": "exactly one kilobyte formats as KB",
-    "program": "v1.ts",
-    "exact": "1 KB"
-  }
-]

@@ -1,6 +1,0 @@
-{
-  "root_cause_files": ["lib/api/abort-signal.js"],
-  "injection_strategy": "Removed the early-exit check `if (signal.aborted) { abort(self); return }` from addSignal. Without this check, passing an already-aborted AbortSignal does not cause the handler to abort immediately. Instead, the listener is registered on the already-fired signal. Since AbortController only fires the abort event once, the listener never fires and the request proceeds normally.",
-  "expected_failure_summary": "Pre-aborted signals do not abort requests immediately. A request created with an already-aborted signal completes normally (or hangs) instead of immediately failing with RequestAbortedError.",
-  "calibration_notes": "Medium: model must find addSignal in lib/api/abort-signal.js and add the missing signal.aborted early-exit guard."
-}
