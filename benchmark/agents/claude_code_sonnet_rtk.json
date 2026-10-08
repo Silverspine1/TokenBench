@@ -1,0 +1,32 @@
+{
+  "agent_id": "claude_code_sonnet_rtk",
+  "display_name": "Sonnet 4.6 + rtk 0.42.4 Bash hook, isolated",
+  "kind": "cli_agent",
+  "provider": "claude",
+  "model": "claude-sonnet-4-6",
+  "model_resolution": "configured",
+  "command_template": [
+    "claude",
+    "--print",
+    "--output-format",
+    "json",
+    "--dangerously-skip-permissions",
+    "--disallowedTools",
+    "WebSearch",
+    "WebFetch",
+    "--model",
+    "claude-sonnet-4-6",
+    "--effort",
+    "high",
+    "--setting-sources",
+    "project,local",
+    "--disable-slash-commands",
+    "--settings",
+    "<PATH-TO-THIS-REPO>/benchmark/agents/rtk_settings.json"
+  ],
+  "supports_stdin_prompt": true,
+  "supports_workspace_cwd": true,
+  "final_submission_mode": "process_exit",
+  "default_timeout_seconds": 900,
+  "env": {}
+}

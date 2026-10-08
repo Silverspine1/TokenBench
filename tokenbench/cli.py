@@ -48,7 +48,7 @@ from .suites.loader import load_suite
 from .telemetry.cost_import import attach_cost_csv, attach_cost_to_run
 from .telemetry.reports import calibration_report
 
-app = typer.Typer(add_completion=False, help="TokenBench.ai harness (V0.2)")
+app = typer.Typer(add_completion=False, help="TokenBench harness")
 console = Console()
 
 

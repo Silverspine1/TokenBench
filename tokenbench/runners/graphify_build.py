@@ -6,7 +6,7 @@ contaminates the agent's measured token cost. The graph lands in
 (see ``core.paths``) so it never appears in the candidate diff or scoring.
 
 This is the "graphify in every workspace" treatment condition: present the graph,
-tell the agent to query it, and measure tokens/success vs the no-graph control.
+tell the agent to query it, and measure tokens/success vs the no-graph run.
 """
 
 from __future__ import annotations

@@ -23,7 +23,7 @@ def test_build_and_prompt_toggle(tmp_path):
     shutil.copytree(SNAPSHOT, ws)
     manifest = load_manifest(MANIFEST)
 
-    # Control: no graph -> no block.
+    # No graph: no block.
     assert "Knowledge graph:" not in build_prompt(manifest, ws)
 
     # Treatment: build graph -> block appears, free (AST-only) and on disk.

@@ -39,7 +39,7 @@ def _graphify_block(workspace_path: Path) -> str:
     """Tool block, present only when the harness built a graph into the workspace.
 
     The presence of ``graphify-out/graph.json`` *is* the treatment signal — no
-    flag needs to reach the runner. Empty string in the control condition.
+    flag needs to reach the runner. Empty string in the no-graph condition.
     """
     if not (Path(workspace_path) / "graphify-out" / "graph.json").exists():
         return ""

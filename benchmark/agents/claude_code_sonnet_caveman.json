@@ -1,0 +1,32 @@
+{
+  "agent_id": "claude_code_sonnet_caveman",
+  "display_name": "Sonnet 4.6 + caveman plugin (15581d14007f), isolated",
+  "kind": "cli_agent",
+  "provider": "claude",
+  "model": "claude-sonnet-4-6",
+  "model_resolution": "configured",
+  "command_template": [
+    "claude",
+    "--print",
+    "--output-format",
+    "json",
+    "--dangerously-skip-permissions",
+    "--disallowedTools",
+    "WebSearch",
+    "WebFetch",
+    "--model",
+    "claude-sonnet-4-6",
+    "--effort",
+    "high",
+    "--setting-sources",
+    "project,local",
+    "--disable-slash-commands",
+    "--plugin-dir",
+    "<PATH-TO-CAVEMAN-PLUGIN-CHECKOUT>"
+  ],
+  "supports_stdin_prompt": true,
+  "supports_workspace_cwd": true,
+  "final_submission_mode": "process_exit",
+  "default_timeout_seconds": 900,
+  "env": {}
+}
