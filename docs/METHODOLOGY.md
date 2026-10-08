@@ -41,7 +41,9 @@ The baseline is the largest unmodified sample: 331 valid runs, about six per tas
 
 The baseline was run in August 2026 on Claude Code 2.1.239-2.1.241 with default settings. The tool runs were run in October on Claude Code 2.1.293 with the isolated settings described under Isolation.
 
-A 10-task check found no detected difference between the two. Runs with default settings in October, on 10 of the tasks, came out +0.4% against the August baseline on the same tasks (95% CI -16.2% to +14.9%). Isolated and default settings, both run in October on the same 10 tasks, came out -0.3% (95% CI -13.6% to +18.1%). Each check used two runs per task. The per-run rows for these checks are not part of this release.
+A 10-task check found no sign of a difference between the two, but it is small, so its intervals are wide (about plus or minus 15%) and cannot rule out a shift of that size. Runs with default settings in October, on 10 of the tasks, came out +0.4% against the August baseline on the same tasks (95% CI -16.2% to +14.9%). Isolated and default settings, both run in October on the same 10 tasks, came out -0.3% (95% CI -13.6% to +18.1%). Each check used two runs per task. The per-run rows for these checks are not part of this release.
+
+A tighter, indirect check comes from the rtk arm. It ran all 55 tasks in the same October setup as the other tools and came out +1.2% against the August baseline (95% CI -4.3% to +7.7%). If the move from August default settings to the October isolated setup had shifted cost by 15% or more, rtk would be expected to show it unless rtk's own effect happened to cancel it. This is an inference from one tool arm, not a dedicated control.
 
 ## Runs, exclusions and re-runs
 
@@ -104,7 +106,7 @@ claude --print --output-format json --dangerously-skip-permissions \
 
 ## What the tools did
 
-Change against baseline, per-task means summed over the 55 tasks. Sub-agent share is the share of runs that spawned a sub-agent (pooled over runs).
+Change against baseline, per-task means summed over the 55 tasks. Sub-agent share is the share of runs that spawned a sub-agent (pooled over runs). Claude Code's built-in sub-agents are available and unconstrained in every arm, and whether to use one is the agent's own choice. The sub-agent columns therefore describe how each tool changed agent behaviour. They are a result of the tool, not a difference in how the benchmark was run. Sub-agent spend is included in cost because it is part of what a run costs.
 
 | Arm | Runs spawning a sub-agent | Sub-agent tokens per pass | Thinking tokens | Output tokens | Tool calls |
 |---|---|---|---|---|---|
@@ -116,7 +118,7 @@ Change against baseline, per-task means summed over the 55 tasks. Sub-agent shar
 | Ponytail 4.9.0 | 78% | 7.8 M | -30% | -19% | -6% |
 | rtk | 81% | 7.6 M | -7% | -4% | -3% |
 
-* **Graphify and code-review-graph:** no run spawned a sub-agent, against 60% of baseline runs, and sub-agent tokens fall to zero. Graphify's output tokens change little, and its thinking tokens fall by 15%. code-review-graph uses more tool calls and more thinking and output tokens than baseline.
+* **Graphify and code-review-graph:** these tools orient the agent up front, and it then chose no sub-agents: no run spawned one, against 60% of baseline runs, and sub-agent tokens fall to zero. Graphify's output tokens change little, and its thinking tokens fall by 15%. code-review-graph uses more tool calls and more thinking and output tokens than baseline.
 * **Caveman and Ponytail:** thinking and output tokens fall against baseline. Their sub-agent use does not fall (Caveman) or falls only in Ponytail 5.0.0.
 * **Ponytail 5.0.0 against 4.9.0:** sub-agent runs fall from 78% to 56%, and sub-agent tokens from 7.8 M to 3.3 M per pass. Thinking and output tokens per run change by +3% and +2%.
 * **rtk:** the hook ran. The end-to-end effect is within noise.
@@ -127,7 +129,7 @@ Tool activation, from transcript scans (scripts not published): Graphify's graph
 
 * Two valid runs per task per tool. Intervals resample tasks only. They do not capture run-to-run variance within a task.
 * One model, one effort level, one machine.
-* The baseline and the tool runs differ in time, Claude Code version and settings. The 10-task checks found no detected difference, but their intervals are about plus or minus 15%.
+* The baseline and the tool runs differ in time, Claude Code version and settings. The 10-task checks show no sign of a difference, but they are small and their intervals are about plus or minus 15%; the rtk arm (+1.2%, 95% CI -4.3% to +7.7%, 55 tasks) gives tighter indirect evidence.
 * Caveman, code-review-graph and rtk were not re-run on their newest releases.
 * Graph build cost is excluded. Cost is list price, not billed spend.
 * The hidden tests, gold fixes and author notes (`private_notes.json` files and `task_author_notes` in the manifests) are in this repository. A model trained on this repository may have seen the answers. Treat the results as a snapshot for these tasks.

@@ -88,7 +88,7 @@ task group (stage 2 starts from stage 1's own candidate output) — see
 ## Published results (October 2026)
 
 Claude Sonnet 4.6, 55 coding tasks, 2 runs per task, tool configs run on 7-8 October 2026. Cost is per 55-task pass; the
-baseline is unmodified Claude Code from August 2026 (331 valid runs). A 10-task re-run in October found no detected difference from it (+0.4%, 95% CI -16% to +15%). The methodology lists the comparability checks. Cost per pass is the cost of one run through all 55 tasks, failed runs included; a negative cost change means cheaper than baseline. Intervals are
+baseline is unmodified Claude Code from August 2026 (331 valid runs). A 10-task re-run in October came out +0.4% against it (95% CI -16% to +15%); that check is small, so it shows no sign of drift but cannot rule out a shift of up to about 15%. The rtk arm covers all 55 tasks in the same October setup and came out +1.2% (95% CI -4.3% to +7.7%). The methodology lists the comparability checks. Cost per pass is the cost of one run through all 55 tasks, failed runs included; a negative cost change means cheaper than baseline. Intervals are
 95% bootstrap intervals over tasks.
 
 | Tool (version) | Cost per 55-task pass | Cost change vs baseline (95% CI) | Pass rate | Quality |
